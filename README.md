@@ -45,6 +45,60 @@
 
 [![Latest benchmark report (preview)](reports/latest/benchmark-report-preview.png)](reports/latest/benchmark-report.png)
 
+## Run it for your engine (quickstart)
+
+Benchmark **any OpenRouter model** against **your search engine** in three steps.
+
+**1. Install + credentials**
+
+```bash
+uv sync
+echo "OPENROUTER_API_KEY=sk-or-..." > .env
+set -a; source .env; set +a
+uv run python -m search_evals download-datasets   # provision suites (hle needs HF auth)
+```
+
+**2. Define a system in [`systems.toml`](systems.toml).** A system = model + search
+setup. Point `id` at any OpenRouter model and list your engine(s) in `engines`
+(`exa` · `parallel` · `perplexity` · `firecrawl` · `native` · `auto`) — the matrix
+expands each into a system — then tune the knobs you care about:
+
+```toml
+[openrouter_matrices.myengine]
+system_prefix = "openrouter-web-search"
+engines = ["exa"]                       # ← your engine(s)
+[openrouter_matrices.myengine.defaults]
+web_search = "server-tool"              # openrouter:web_search (or "plugin")
+max_tool_calls = 25                     # 1 / 3 / 25 — search depth (server-tool only)
+max_results_per_search = 10
+# max_characters = 4000                 # per-result content cap (unset = engine default)
+[[openrouter_matrices.myengine.models]]
+id = "openai/gpt-5.4-nano"              # ← any OpenRouter model
+name = "gpt-5-4-nano"
+```
+
+**3. Smoke → calibrate → scale** (every run is paid; confirm cost first):
+
+```bash
+uv run python -m search_evals run --system openrouter-web-search-gpt-5-4-nano-exa --suite browsecomp --limit 5   # ~$1 smoke
+uv run python -m search_evals run --system openrouter-web-search-gpt-5-4-nano-exa --suite browsecomp --sample 100 # seeded subset
+uv run python scripts/benchmark_report.py report --bench <run-suffix> --out reports/<suffix> --png              # build the report
+```
+
+Tunable params (per engine row or matrix default): `search_backend`, `web_search`
+(`server-tool` | `plugin`), `max_tool_calls`, `max_results_per_search`,
+`max_total_results`, `max_characters`, `include_domains` / `exclude_domains`,
+`provider_order` / `provider_allow_fallbacks`, `reasoning_effort`. See
+[`systems.toml`](systems.toml) for live examples.
+
+**OpenRouter search docs (what we support):**
+[web search server tool](https://openrouter.ai/docs/guides/features/server-tools/web-search)
+(`openrouter:web_search`, the default here) ·
+[web fetch server tool](https://openrouter.ai/docs/guides/features/server-tools/web-fetch) ·
+[web search plugin](https://openrouter.ai/docs/guides/features/plugins/web-search)
+(`plugins:[{id:web}]`, legacy) ·
+[plugins overview](https://openrouter.ai/docs/guides/features/plugins).
+
 This repository is the OpenRouter-maintained fork of
 [`perplexityai/search_evals`](https://github.com/perplexityai/search_evals).
 It keeps the upstream benchmark runner, suite contracts, dataset provisioning,
