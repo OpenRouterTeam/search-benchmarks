@@ -134,10 +134,12 @@ class RunRecord:
 
     @property
     def order_key(self) -> tuple:
-        """Sort rows by (model, engine, surface-ladder) so all of one engine's
-        surfaces sit together: exa plugin -> 1call -> 3call -> 25call, then
-        parallel..., then perplexity..."""
-        return (str(self.model), self.engine, self._SURFACE_RANK.get(self.surface, 9), self.system)
+        """Sort rows by (surface-ladder, model, engine) so every surface is a
+        contiguous band — all plugin rows for all models together, then all
+        1-call, then 3-call, then 25-call. Within a band, group by model then
+        engine. This makes each surface a visually distinct sub-suite of the
+        system×suite test."""
+        return (self._SURFACE_RANK.get(self.surface, 9), str(self.model), self.engine, self.system)
 
     @property
     def degraded(self) -> bool:
@@ -1118,7 +1120,13 @@ CSS = """
 :root{--bg:#FCFCFE;--card:#FFFFFF;--border:#E8E8F0;--border-soft:#F1F1F6;--text:#191923;
 --muted:#6A6A7C;--faint:#9C9CAD;--grape:#7624F4;--royal:#035ADE;--pos:#00BF6F;--pos-ink:#00935A;
 --neg:#FF2D55;--warn:#FFAB00;--warn-ink:#9A6700;--track:#EEF1F6;
---mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+/* surface band accents (left border + tinted header) */
+--surf-plugin:#6B7280;--surf-plugin-bg:#F6F7F9;
+--surf-1call:#035ADE;--surf-1call-bg:#F0F5FE;
+--surf-3call:#7624F4;--surf-3call-bg:#F6F1FE;
+--surf-25call:#00935A;--surf-25call-bg:#EBF7F1;
+--win-box:rgba(0,147,90,.5);--win-fill:rgba(0,191,111,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;
 font:12px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -1196,6 +1204,27 @@ td.first,th.first{padding-left:18px}
 td.last,th.last{padding-right:18px}
 .sys{font-weight:600;font-size:11.5px;white-space:nowrap}
 .subline{color:var(--faint);font-size:10px;margin-top:1px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* surface bands: each surface (plugin/1call/3call/25call) is a sub-suite of
+   the system×suite test, color-keyed via a left border + tinted group header. */
+tr.surfaceband td{padding:6px 12px;border-bottom:1px solid var(--border-soft);
+border-top:1px solid var(--border-soft)}
+tr.surfaceband .bandlabel{font-size:10px;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
+tr.surfaceband .bandnote{color:var(--faint);font-size:9.5px;font-weight:500;letter-spacing:0;text-transform:none;margin-left:8px}
+td.bandedge{border-left:3px solid transparent}
+.surf-plugin td.bandedge,tr.surf-plugin .bandlabel{border-left-color:var(--surf-plugin);color:var(--surf-plugin)}
+.surf-1call td.bandedge,tr.surf-1call .bandlabel{border-left-color:var(--surf-1call);color:var(--surf-1call)}
+.surf-3call td.bandedge,tr.surf-3call .bandlabel{border-left-color:var(--surf-3call);color:var(--surf-3call)}
+.surf-25call td.bandedge,tr.surf-25call .bandlabel{border-left-color:var(--surf-25call);color:var(--surf-25call)}
+tr.surf-plugin.surfaceband td{background:var(--surf-plugin-bg)}
+tr.surf-1call.surfaceband td{background:var(--surf-1call-bg)}
+tr.surf-3call.surfaceband td{background:var(--surf-3call-bg)}
+tr.surf-25call.surfaceband td{background:var(--surf-25call-bg)}
+/* per-surface winner: light box around the leading cell within a band+suite */
+td.subwin{box-shadow:inset 0 0 0 2px var(--win-box);border-radius:7px;background:var(--win-fill)}
+.matlegend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 18px 0}
+.matlegend .lg{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.matlegend .sw{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.matlegend .sw.win{box-shadow:inset 0 0 0 2px var(--win-box);background:var(--win-fill)}
 td.r.num,td .val{white-space:nowrap}
 .chip{display:inline-block;background:#F4F4F9;border:1px solid var(--border);border-radius:4px;
 padding:1px 6px;font-family:var(--mono);font-size:10px;color:#3A3A4A;white-space:nowrap}
@@ -1290,6 +1319,97 @@ def grader_label(records: list[RunRecord]) -> str:
     provider = os.environ.get("SEARCH_EVALS_GRADER_PROVIDER", "openrouter")
     model = os.environ.get("SEARCH_EVALS_GRADER_MODEL", "openai/gpt-4.1" if provider == "openrouter" else "gpt-4.1")
     return f"{model} via {provider}"
+
+
+# Surface bands shown as sub-suites in every matrix. label + one-line gloss.
+SURFACE_BANDS = [
+    ("plugin", "Plugin", "one pre-inference search, verbatim query"),
+    ("1call", "1-call", "one model-authored search"),
+    ("3call", "3-call", "a few search rounds"),
+    ("25call", "25-call", "best-effort agentic loop (hard cap)"),
+]
+SURFACE_LABELS = {k: lbl for k, lbl, _ in SURFACE_BANDS}
+
+
+def matrix_legend_html() -> str:
+    """Programmatic legend explaining the surface bands + winner box, rendered
+    once under each matrix head."""
+    swatches = "".join(
+        f'<span class="lg"><span class="sw" style="background:var(--surf-{k})"></span>{esc(lbl)}</span>'
+        for k, lbl, _ in SURFACE_BANDS
+    )
+    return (
+        '<div class="matlegend">'
+        f'{swatches}'
+        '<span class="lg"><span class="sw win"></span>boxed = best in that surface × suite</span>'
+        '<span class="lg"><span class="bestdot" style="position:static;margin:0 2px"></span>overall suite leader</span>'
+        "</div>"
+    )
+
+
+def surface_winners(canonical: dict, systems: list[str], suites: list[str]) -> dict:
+    """Best engine row per (surface, suite). Returns {(surface, suite): system}.
+    Only pinned-engine, non-degraded, scored rows compete — same rule as the
+    overall suite leader, but scoped to one surface band."""
+    by_surface: dict[str, list[str]] = {}
+    for s in systems:
+        rec = canonical.get((s, suites[0])) or next(
+            (canonical[(s, su)] for su in suites if (s, su) in canonical), None
+        )
+        if rec is not None:
+            by_surface.setdefault(rec.surface, []).append(s)
+    winners: dict = {}
+    for surf, surf_systems in by_surface.items():
+        for suite in suites:
+            scored = [
+                canonical[(s, suite)]
+                for s in surf_systems
+                if (s, suite) in canonical
+                and canonical[(s, suite)].score_zero is not None
+                and canonical[(s, suite)].is_engine_row
+                and not canonical[(s, suite)].degraded
+            ]
+            if scored:
+                winners[(surf, suite)] = max(scored, key=lambda r: r.score_zero or 0.0).system
+    return winners
+
+
+def render_banded_matrix(systems, suites, canonical, cell_fn, winners=None):
+    """Build matrix <tbody> rows grouped into surface bands. cell_fn(record,
+    system, suite, is_last, is_winner) returns the <td> HTML for one cell;
+    winners maps (surface, suite) -> winning system for the light box. A band
+    header row is inserted whenever the surface changes (rows must be pre-sorted
+    by order_key, which leads with the surface rank)."""
+    ncols = len(suites)
+    rows = []
+    cur_surface = None
+    for system in systems:
+        sample = next((canonical[(system, s)] for s in suites if (system, s) in canonical), None)
+        surface = sample.surface if sample is not None else "agent"
+        if surface != cur_surface:
+            cur_surface = surface
+            lbl = SURFACE_LABELS.get(surface, surface)
+            gloss = next((g for k, _, g in SURFACE_BANDS if k == surface), "")
+            rows.append(
+                f'<tr class="surfaceband surf-{surface}"><td class="first bandedge" colspan="{ncols + 1}">'
+                f'<span class="bandlabel">{esc(lbl)}</span>'
+                f'<span class="bandnote">{esc(gloss)}</span></td></tr>'
+            )
+        cells = []
+        for i, suite in enumerate(suites):
+            record = canonical.get((system, suite))
+            is_last = i == ncols - 1
+            is_winner = bool(winners and winners.get((surface, suite)) == system)
+            cells.append(cell_fn(record, system, suite, is_last, is_winner))
+        sub = f"{sample.model} · {sample.engine}" if sample else ""
+        if sample is not None and not sample.is_engine_row:
+            sub += " (policy/baseline)"
+        display = sample.short_system if sample is not None else system.removeprefix("openrouter-web-search-")
+        rows.append(
+            f'<tr class="surf-{surface}"><td class="first bandedge"><div class="sys">{esc(display)}</div>'
+            f'<div class="subline">{esc(sub)}</div></td>{"".join(cells)}</tr>'
+        )
+    return "".join(rows)
 
 
 def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note: str | None = None) -> str:
@@ -1526,41 +1646,34 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
     matrix_html = ""
     if len(suites) > 1 and systems:
         header_cells = "".join(f"<th class='r{' last' if i == len(suites) - 1 else ''}'>{esc(s)}</th>" for i, s in enumerate(suites))
-        matrix_rows = []
-        for system in systems:
-            cells = []
-            for i, suite in enumerate(suites):
-                record = canonical.get((system, suite))
-                last = " last" if i == len(suites) - 1 else ""
-                if record is None or record.score_zero is None:
-                    cells.append(f'<td class="r{last}"><span class="na">—</span></td>')
-                    continue
-                is_best = best_by_suite.get(suite) is record
-                dot = '<span class="bestdot"></span>' if is_best else ""
-                full = SUITE_TASKS.get(suite)
-                cell_degraded = record.degraded
-                n_label = (
-                    "no results — BYOK key unset" if cell_degraded
-                    else f"n={record.completed}" + (f"/{full}" if full else "") + (" · live" if record.is_live else "")
-                )
-                cells.append(
-                    f'<td class="r{last}{" degraded-cell" if cell_degraded else ""}"><span class="cellscore">{fmt_score(record.score_zero)}</span>{dot}'
-                    f'<div class="subline" style="max-width:none">{n_label}</div>'
-                    f'<div class="bar cellbar" style="margin-left:auto"><i{" class=best" if is_best else ""} style="width:{max(0.0, min(1.0, record.score_zero)) * 100:.1f}%"></i></div></td>'
-                )
-            sample = next((canonical[(system, s)] for s in suites if (system, s) in canonical), None)
-            sub = f"{sample.model} · {sample.engine}" if sample else ""
-            if sample is not None and not sample.is_engine_row:
-                sub += " (policy/baseline)"
-            display = sample.short_system if sample is not None else system.removeprefix("openrouter-web-search-")
-            matrix_rows.append(
-                f'<tr><td class="first"><div class="sys">{esc(display)}</div><div class="subline">{esc(sub)}</div></td>{"".join(cells)}</tr>'
+        score_winners = surface_winners(canonical, systems, suites)
+
+        def score_cell(record, system, suite, is_last, is_winner):
+            last = " last" if is_last else ""
+            if record is None or record.score_zero is None:
+                return f'<td class="r{last}"><span class="na">—</span></td>'
+            is_best = best_by_suite.get(suite) is record
+            dot = '<span class="bestdot"></span>' if is_best else ""
+            full = SUITE_TASKS.get(suite)
+            cell_degraded = record.degraded
+            n_label = (
+                "no results — BYOK key unset" if cell_degraded
+                else f"n={record.completed}" + (f"/{full}" if full else "") + (" · live" if record.is_live else "")
             )
+            cls = f"r{last}" + (" degraded-cell" if cell_degraded else "") + (" subwin" if is_winner else "")
+            return (
+                f'<td class="{cls}"><span class="cellscore">{fmt_score(record.score_zero)}</span>{dot}'
+                f'<div class="subline" style="max-width:none">{n_label}</div>'
+                f'<div class="bar cellbar" style="margin-left:auto"><i{" class=best" if is_best else ""} style="width:{max(0.0, min(1.0, record.score_zero)) * 100:.1f}%"></i></div></td>'
+            )
+
+        matrix_body = render_banded_matrix(systems, suites, canonical, score_cell, score_winners)
         matrix_html = f"""<div class="section matrix">
   <div class="head"><h3>Score matrix — system × suite</h3>
-  <span class="hint">Failed-as-zero primary metric per suite with graded sample size (n / full suite). Green dot marks the suite leader. Validation runs (smokes/probes/POCs) are excluded; see the run inventory.</span></div>
+  <span class="hint">Failed-as-zero primary metric per suite (n / full suite). Rows are grouped into surface bands (a sub-suite of the test); the boxed cell leads its surface×suite, the green dot marks the overall suite leader.</span></div>
+  {matrix_legend_html()}
   <table><thead><tr><th class="first">System</th>{header_cells}</tr></thead>
-  <tbody>{''.join(matrix_rows)}</tbody></table>
+  <tbody>{matrix_body}</tbody></table>
 </div>"""
 
     # ---- price matrix (cost per task, system × suite) ----
@@ -1584,41 +1697,49 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
             if costed:
                 cheapest[suite] = min(costed, key=lambda r: _pt(r))
         header_cells_p = "".join(f"<th class='r{' last' if i == len(suites) - 1 else ''}'>{esc(s)}</th>" for i, s in enumerate(suites))
-        price_rows = []
         # max per-task cost across the grid, for bar scaling
         all_costs = [c for sys_ in systems for s in suites if (c := _pt(canonical.get((sys_, s)))) is not None]
         cost_max = max(all_costs) if all_costs else 1.0
-        for system in systems:
-            cells = []
-            for i, suite in enumerate(suites):
-                record = canonical.get((system, suite))
-                last = " last" if i == len(suites) - 1 else ""
-                pt = _pt(record)
-                if pt is None:
-                    cells.append(f'<td class="r{last}"><span class="na">—</span></td>')
-                    continue
-                is_cheap = cheapest.get(suite) is record
-                dot = '<span class="bestdot"></span>' if is_cheap else ""
-                cell_degraded = record.degraded
-                agent_pt = (record.stage_cost("agent") or 0.0) / record.completed if record.completed else 0.0
-                cells.append(
-                    f'<td class="r{last}{" degraded-cell" if cell_degraded else ""}"><span class="cellscore">${pt:.3f}</span>{dot}'
-                    f'<div class="subline" style="max-width:none">agent ${agent_pt:.3f}/task</div>'
-                    f'<div class="bar cellbar" style="margin-left:auto"><i{" class=best" if is_cheap else ""} style="width:{max(0.0, min(1.0, pt / cost_max)) * 100:.1f}%"></i></div></td>'
-                )
-            sample = next((canonical[(system, s)] for s in suites if (system, s) in canonical), None)
-            sub = f"{sample.model} · {sample.engine}" if sample else ""
-            if sample is not None and not sample.is_engine_row:
-                sub += " (policy/baseline)"
-            display = sample.short_system if sample is not None else system.removeprefix("openrouter-web-search-")
-            price_rows.append(
-                f'<tr><td class="first"><div class="sys">{esc(display)}</div><div class="subline">{esc(sub)}</div></td>{"".join(cells)}</tr>'
+        # cheapest engine row per (surface, suite) gets the winner box
+        price_winners: dict = {}
+        by_surf: dict[str, list[str]] = {}
+        for s in systems:
+            rec = next((canonical[(s, su)] for su in suites if (s, su) in canonical), None)
+            if rec is not None:
+                by_surf.setdefault(rec.surface, []).append(s)
+        for surf, surf_systems in by_surf.items():
+            for suite in suites:
+                costed = [
+                    canonical[(s, suite)] for s in surf_systems
+                    if (s, suite) in canonical and canonical[(s, suite)].is_engine_row
+                    and not canonical[(s, suite)].degraded and _pt(canonical[(s, suite)])
+                ]
+                if costed:
+                    price_winners[(surf, suite)] = min(costed, key=lambda r: _pt(r)).system
+
+        def price_cell(record, system, suite, is_last, is_winner):
+            last = " last" if is_last else ""
+            pt = _pt(record)
+            if pt is None:
+                return f'<td class="r{last}"><span class="na">—</span></td>'
+            is_cheap = cheapest.get(suite) is record
+            dot = '<span class="bestdot"></span>' if is_cheap else ""
+            cell_degraded = record.degraded
+            agent_pt = (record.stage_cost("agent") or 0.0) / record.completed if record.completed else 0.0
+            cls = f"r{last}" + (" degraded-cell" if cell_degraded else "") + (" subwin" if is_winner else "")
+            return (
+                f'<td class="{cls}"><span class="cellscore">${pt:.3f}</span>{dot}'
+                f'<div class="subline" style="max-width:none">agent ${agent_pt:.3f}/task</div>'
+                f'<div class="bar cellbar" style="margin-left:auto"><i{" class=best" if is_cheap else ""} style="width:{max(0.0, min(1.0, pt / cost_max)) * 100:.1f}%"></i></div></td>'
             )
+
+        price_body = render_banded_matrix(systems, suites, canonical, price_cell, price_winners)
         price_html = f"""<div class="section matrix">
   <div class="head"><h3>Price matrix — $/task, system × suite</h3>
-  <span class="hint">Known provider cost per graded task (agent + grader). Green dot marks the cheapest engine row per suite (degraded/no-retrieval rows excluded). Bar length is relative to the most expensive cell. Read alongside the score matrix: a row that scores nearly as high at a fraction of the cost is the value pick.</span></div>
+  <span class="hint">Known provider cost per graded task (agent + grader), grouped by surface band. The boxed cell is the cheapest engine in that surface×suite; the green dot marks the cheapest in the suite overall. Bar length is relative to the most expensive cell.</span></div>
+  {matrix_legend_html()}
   <table><thead><tr><th class="first">System</th>{header_cells_p}</tr></thead>
-  <tbody>{''.join(price_rows)}</tbody></table>
+  <tbody>{price_body}</tbody></table>
 </div>"""
 
     # ---- latency matrix (median agent seconds, system × suite) ----
@@ -1643,49 +1764,54 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
             if (rec := canonical.get((sys_, s))) is not None and (v := rec.latency_p95_s) is not None
         ]
         lat_scale = max(all_p95) if all_p95 else (max(all_lat) if all_lat else 1.0)
-        lat_rows = []
-        for system in systems:
-            cells = []
-            for i, suite in enumerate(suites):
-                record = canonical.get((system, suite))
-                last = " last" if i == len(suites) - 1 else ""
-                med = record.latency_median_s if record else None
-                if med is None:
-                    cells.append(f'<td class="r{last}"><span class="na">—</span></td>')
-                    continue
-                p90 = record.latency_p90_s
-                p95 = record.latency_p95_s
-                mx = record.latency_max_s
-                to = record.timeouts
-                # subline: p90 / p95 / max, then timeout count if any didn't finish
-                parts = []
-                if p90 is not None:
-                    parts.append(f"p90 {p90:.0f}")
-                if p95 is not None:
-                    parts.append(f"p95 {p95:.0f}")
-                if mx is not None:
-                    parts.append(f"max {mx:.0f}s")
-                tail_label = " · ".join(parts)
-                to_label = f'<span class="lat-timeout">{to} timeout{"s" if to != 1 else ""}</span>' if to else ""
-                bar_v = (p95 if p95 is not None else med)
-                cells.append(
-                    f'<td class="r{last}"><span class="cellscore">{med:.0f}s</span> <span class="lat-med">med</span>{to_label}'
-                    f'<div class="subline" style="max-width:none">{tail_label}</div>'
-                    f'<div class="bar cellbar" style="margin-left:auto"><i style="width:{max(0.0, min(1.0, bar_v / lat_scale)) * 100:.1f}%"></i></div></td>'
-                )
-            sample = next((canonical[(system, s)] for s in suites if (system, s) in canonical), None)
-            sub = f"{sample.model} · {sample.engine}" if sample else ""
-            if sample is not None and not sample.is_engine_row:
-                sub += " (policy/baseline)"
-            display = sample.short_system if sample is not None else system.removeprefix("openrouter-web-search-")
-            lat_rows.append(
-                f'<tr><td class="first"><div class="sys">{esc(display)}</div><div class="subline">{esc(sub)}</div></td>{"".join(cells)}</tr>'
+        # fastest engine row (lowest median) per (surface, suite) gets the box
+        lat_winners: dict = {}
+        by_surf_l: dict[str, list[str]] = {}
+        for s in systems:
+            rec = next((canonical[(s, su)] for su in suites if (s, su) in canonical), None)
+            if rec is not None:
+                by_surf_l.setdefault(rec.surface, []).append(s)
+        for surf, surf_systems in by_surf_l.items():
+            for suite in suites:
+                timed = [
+                    canonical[(s, suite)] for s in surf_systems
+                    if (s, suite) in canonical and canonical[(s, suite)].is_engine_row
+                    and not canonical[(s, suite)].degraded
+                    and canonical[(s, suite)].latency_median_s is not None
+                ]
+                if timed:
+                    lat_winners[(surf, suite)] = min(timed, key=lambda r: r.latency_median_s).system
+
+        def lat_cell(record, system, suite, is_last, is_winner):
+            last = " last" if is_last else ""
+            med = record.latency_median_s if record else None
+            if med is None:
+                return f'<td class="r{last}"><span class="na">—</span></td>'
+            p90, p95, mx, to = record.latency_p90_s, record.latency_p95_s, record.latency_max_s, record.timeouts
+            parts = []
+            if p90 is not None:
+                parts.append(f"p90 {p90:.0f}")
+            if p95 is not None:
+                parts.append(f"p95 {p95:.0f}")
+            if mx is not None:
+                parts.append(f"max {mx:.0f}s")
+            tail_label = " · ".join(parts)
+            to_label = f'<span class="lat-timeout">{to} timeout{"s" if to != 1 else ""}</span>' if to else ""
+            bar_v = p95 if p95 is not None else med
+            cls = f"r{last}" + (" subwin" if is_winner else "")
+            return (
+                f'<td class="{cls}"><span class="cellscore">{med:.0f}s</span> <span class="lat-med">med</span>{to_label}'
+                f'<div class="subline" style="max-width:none">{tail_label}</div>'
+                f'<div class="bar cellbar" style="margin-left:auto"><i style="width:{max(0.0, min(1.0, bar_v / lat_scale)) * 100:.1f}%"></i></div></td>'
             )
+
+        lat_body = render_banded_matrix(systems, suites, canonical, lat_cell, lat_winners)
         latency_html = f"""<div class="section matrix">
   <div class="head"><h3>Latency matrix — agent seconds, system × suite</h3>
-  <span class="hint">Per-task agent wall-clock (search loop + generation; excludes grading and retry waits). Headline is the <b>median</b>; subline gives the tail (p90 · p95 · max) and any tasks that never finished (timeouts, counted as failed-as-zero in the score). Bar length scales to the worst p95, so heavy-tailed engines read as long even when their median is modest. Concurrency inflates wall-clock under load — read as a relative signal across cells, not an absolute SLA.</span></div>
+  <span class="hint">Per-task agent wall-clock (search loop + generation; excludes grading and retry waits), grouped by surface band. Headline is the <b>median</b>; subline gives the tail (p90 · p95 · max) and unfinished tasks (timeouts). The boxed cell is the fastest engine in that surface×suite. Bar scales to the worst p95. Concurrency inflates wall-clock — read as a relative signal, not an SLA.</span></div>
+  {matrix_legend_html()}
   <table><thead><tr><th class="first">System</th>{header_cells_l}</tr></thead>
-  <tbody>{''.join(lat_rows)}</tbody></table>
+  <tbody>{lat_body}</tbody></table>
 </div>"""
 
     # ---- widesearch (or any multi-metric suite) detail ----
