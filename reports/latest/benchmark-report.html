@@ -47,6 +47,9 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.18;margin-
 .rung .name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .rung .desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
 .rung .calls{font-size:10px;font-weight:700;color:var(--grape);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.rung .params{margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft);display:flex;flex-direction:column;gap:2px}
+.rung .params .pp{font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rung .params .pp b{color:#33333F;font-weight:600}
 .ladder .arrow{display:flex;align-items:center;color:var(--faint);flex:0 0 auto;padding:0 3px}
 .ladder .arrow svg{width:22px;height:22px}
 .rung.peak{border-color:var(--grape);box-shadow:0 0 0 1px var(--grape) inset}
@@ -140,13 +143,17 @@ white-space:pre-wrap;word-break:break-all}
     <div class="eyebrow">Search evals</div>
     <h1>Search Engine Benchmark Report</h1>
     <div class="ladder">
-      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div></div>
+      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div>
+        <div class="params"><span class="pp"><b>route</b> plugins:[web]</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>max_chars</b> unset</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
-      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div></div>
+      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 1</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
-      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div></div>
+      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 3</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
-      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div></div>
+      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 25</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
     </div>
     <div class="paramline">
       <span class="param"><b>engines</b> exa · parallel · perplexity</span>
@@ -160,8 +167,8 @@ white-space:pre-wrap;word-break:break-all}
     raw levels.</b></div></div>
   </div>
   <div class="metacard">
-    <div class="row"><span class="k">Generated</span><span class="v">2026-06-16 18:28 EDT</span></div>
-    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">1b82ede</span></span></div>
+    <div class="row"><span class="k">Generated</span><span class="v">2026-06-16 18:35 EDT</span></div>
+    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">62aeb83</span></span></div>
     <div class="row"><span class="k">Runs dir</span><span class="v">runs/</span></div>
     <div class="row"><span class="k">Grader</span><span class="v">openai/gpt-4.1 via openrouter</span></div>
     <div class="row"><span class="k">Suites</span><span class="v">browsecomp, hle, dsqa, widesearch</span></div>
@@ -831,7 +838,7 @@ white-space:pre-wrap;word-break:break-all}
 </div>
 <div class="footer">
   <span>Generated locally by scripts/benchmark_report.py.</span>
-  <span>search_evals · 1b82ede</span>
+  <span>search_evals · 62aeb83</span>
 </div>
 </div>
 <script>

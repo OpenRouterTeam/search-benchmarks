@@ -1160,6 +1160,9 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.18;margin-
 .rung .name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .rung .desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
 .rung .calls{font-size:10px;font-weight:700;color:var(--grape);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.rung .params{margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft);display:flex;flex-direction:column;gap:2px}
+.rung .params .pp{font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rung .params .pp b{color:#33333F;font-weight:600}
 .ladder .arrow{display:flex;align-items:center;color:var(--faint);flex:0 0 auto;padding:0 3px}
 .ladder .arrow svg{width:22px;height:22px}
 .rung.peak{border-color:var(--grape);box-shadow:0 0 0 1px var(--grape) inset}
@@ -1811,13 +1814,17 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
     <div class="eyebrow">Search evals</div>
     <h1>{esc(title)}</h1>
     <div class="ladder">
-      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div></div>
+      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div>
+        <div class="params"><span class="pp"><b>route</b> plugins:[web]</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>max_chars</b> unset</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div></div>
+      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 1</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div></div>
+      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 3</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
       <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div></div>
+      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 25</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
     </div>
     <div class="paramline">
       <span class="param"><b>engines</b> exa · parallel · perplexity</span>
