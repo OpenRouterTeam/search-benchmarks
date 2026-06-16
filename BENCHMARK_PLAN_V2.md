@@ -47,8 +47,8 @@ V1.x reports: `reports/nano-v1/` (surface ladder), `reports/glm51-headtohead/`.
 
 V1.x ran **search-only** (no `openrouter:web_fetch`). BrowseComp is built for
 persistent browsing + reading full pages, so search-only handicaps it — our
-browsecomp scores (35-60%) sit far below fetch-enabled vendor agents (Exa's
-Hermes: 55-72%). Fetch is the one capability our eval was blind to.
+browsecomp scores (35-60%) sit far below fetch-enabled multi-tool vendor agents
+(typically 55-72%). Fetch is the one capability our eval was blind to.
 
 **Implemented:** `web_fetch=true` adds `openrouter:web_fetch` to the tools
 array alongside `web_search`. Params: `fetch_engine`, `max_fetch_uses`,
@@ -114,9 +114,7 @@ is not buildable here. That forces the split:
   matrix prefix `openrouter-fetchA`.
 - **Option B — FULL-STACK ("which vendor's best OpenRouter stack wins?")**:
   each engine paired with its own vendor fetch (exa+exa, parallel+parallel);
-  perplexity is a labelled HYBRID (perplexity-search + openrouter-fetch). This
-  is the Exa-comparable framing — their Hermes ran exa search+fetch vs
-  perplexity search-only; we go one better by giving perplexity a fetch. The
+  perplexity is a labelled HYBRID (perplexity-search + openrouter-fetch). The
   perplexity row carries an asterisk the others do not — report it as a vendor-
   stack comparison, NOT a pure search-engine comparison. Spec:
   `v2-fetch-fullstack.toml`, matrix prefix `openrouter-fetchB`.
@@ -134,7 +132,7 @@ tokens balloon. Cap with `max_fetch_content_tokens=50000` and `max_fetch_uses
 | --- | --- | --- | --- |
 | `openai/gpt-5.4-nano` | cheap workhorse | clean (OpenAI fmt) | full V1.x ladder done |
 | `z-ai/glm-5.1` | cheap flagship-tier | clean (re-probed) | strong + cheap, slow; pin fast providers (baseten/parasail/deepinfra/atlascloud/chutes) |
-| `nvidia/nemotron-3-ultra-550b-a55b` | **Exa-parity** | clean (probed 2026-06-13) | Exa's exact Hermes model — direct apples-to-apples vs their PDF; :free endpoint 404s, use paid |
+| `nvidia/nemotron-3-ultra-550b-a55b` | **cheap flagship #2** | clean (probed 2026-06-13) | large open frontier MoE, paired with glm-5.1; :free endpoint 404s, use paid |
 | `openai/gpt-5.5` | flagship anchor | clean | thin anchor lane only, not full matrix |
 
 Rejected: deepseek-v4-pro, glm-4.7, minimax-m2.7 (all leak on the server-tool
@@ -160,10 +158,8 @@ route). flash-class (gemini-2.5-flash) floors out on browsecomp.
 - **Fetch lanes** (`v2-fetch-controlled.toml` / `v2-fetch-fullstack.toml`):
   models don't invoke fetch + fetch is unobservable. Matrices/harness retained;
   blocked on OpenRouter surfacing fetch usage AND a fetch-inducing config.
-- **gpt-5.5 flagship anchor / nemotron Exa-parity**: only worth running once a
-  fetch-comparable config exists (nemotron's value was the Exa fetch
-  comparison, which we can't run yet). search-only nemotron is low marginal
-  value vs the nano/glm engine ranking we already have.
+- **gpt-5.5 flagship anchor**: only a thin anchor lane, not a full matrix —
+  deferred unless a flagship cross-check is needed.
 
 ## 5. Questions — answered vs blocked
 
@@ -174,10 +170,10 @@ latency per engine/model/budget; is glm-5.1 a viable cheap flagship (yes, but
 slow).
 
 **Blocked on the fetch finding:** does fetch flip perplexity-vs-exa / close the
-gap to Exa's 55-72%? — cannot answer in this harness; models don't fetch and
-fetch is unobservable. This is itself the answer to "why aren't we Hermes-
-comparable": it's a harness tool-preference + observability difference, not
-model/engine quality.
+gap to full multi-tool agents (55-72%)? — cannot answer in this harness; models
+don't fetch and fetch is unobservable. This is itself the answer to "why aren't
+we agent-comparable": it's a harness tool-preference + observability difference,
+not model/engine quality.
 
 ## 6. Fetch lane matrix + cost (DEFERRED — reference only, see §2)
 
@@ -194,7 +190,6 @@ reasoning-bound, widesearch niche — both covered search-only in V1.x).
 | nemotron-3-ultra | A + B | A + B | A + B(hybrid) |
 
 A = controlled fetch (openrouter for all); B = full-stack (vendor fetch, perplexity hybrid).
-nemotron-3-ultra = Exa's Hermes model (direct apples-to-apples vs their PDF).
 
 **Estimated cost (from `sweep --dry-run`, cost_per_task=$0.35 blended
 placeholder until a real fetch cell measures it):**
@@ -221,8 +216,8 @@ arms above it.
 
 ## 7. On ~100 tasks/suite — yes, it holds
 
-Your instinct is right and it matches Exa (Hermes ran n=100). V1.x confirmed
-every ranking/delta/cost/latency finding was decisive at n≈63-135 — the CIs are
+Your instinct is right — n=100 is a standard published-benchmark scale. V1.x
+confirmed every ranking/delta/cost/latency finding was decisive at n≈63-135 — the CIs are
 wide on *absolute* scores but the *deltas* (which engine, which surface, which
 model) are robust. At n=100 the Wilson CI on a ~0.5 score is ~±0.10; that
 cleanly separates the gaps we care about (engine deltas are 0.05-0.25). Going

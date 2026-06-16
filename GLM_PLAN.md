@@ -24,9 +24,9 @@ config pins fast providers and uses a 1200s per-attempt timeout.
 | 25-call | exa, parallel, perplexity | best-effort agentic loop (hard cap) |
 
 × 4 suites (browsecomp, hle, dsqa, widesearch). **12 systems × 4 suites = 48
-cells.** ~100 tasks/suite (browsecomp 8% / hle 5% / dsqa 11% / widesearch 50% —
-matches Exa's Hermes n=100). plugin→1call→3call isolates query quality then
-search depth; 25call is the ceiling.
+cells.** ~100 tasks/suite (browsecomp 8% / hle 5% / dsqa 11% / widesearch 50%).
+plugin→1call→3call isolates query quality then search depth; 25call is the
+ceiling.
 
 **Phased (Option C):** the cheap surfaces — plugin + 1-call + 3-call (36 of 48
 cells) — run first (`benchmarks/glm-ladder-C.toml`); the 25-call rung extends
@@ -73,9 +73,8 @@ in place later (same `glm-v1` suffix, nested — fills the same report).
   tasks; depth recovers it at 25-call (0.66) but doesn't beat plugin cleanly.
 - **perplexity ≥ exa > parallel** at the 25-call ceiling, same as nemotron.
 - **glm-5.1 beats nemotron-3-ultra at every budget** (e.g. browsecomp 25-call
-  0.62 vs 0.35; dsqa 0.67 vs 0.52) — the cheap flagship wins. glm's browsecomp
-  25-call (0.62) reaches the low end of Exa's published Hermes range (55-72%)
-  *search-only, no fetch*.
+  0.62 vs 0.35; dsqa 0.67 vs 0.52) — the cheap flagship wins, *search-only,
+  no fetch*.
 - A few 25-call cells finalized thin (n=82-88) on the perplexity/parallel
   timeout tails — solid for ranking, the shakiest for decimal precision.
 

@@ -4,7 +4,7 @@
 > ~100 tasks/suite, all spec-driven (`benchmarks/*.toml`) and nested-sampled so lanes grow in
 > place delta-only. The two headline deliverables are full **search-surface ladders** for two
 > cheap-flagship models: [`GLM_PLAN.md`](GLM_PLAN.md) (z-ai/glm-5.1) and
-> [`NEMOTRON_PLAN.md`](NEMOTRON_PLAN.md) (nvidia/nemotron-3-ultra, Exa's Hermes model) — each
+> [`NEMOTRON_PLAN.md`](NEMOTRON_PLAN.md) (nvidia/nemotron-3-ultra) — each
 > **plugin → 1-call → 3-call → 25-call × exa/parallel/perplexity × 4 suites = 48 cells**,
 > graded by `openai/gpt-4.1`. `auto`/`native` are excluded (routing policy / uncapped, not
 > like-for-like); firecrawl is excluded (BYOK key unconfigured).
@@ -17,7 +17,7 @@
 > the **model can never fetch a URL in full** — OpenRouter's separate `openrouter:web_fetch`
 > server tool is off in every lane (measured neutral-when-capped and unobservable via the API;
 > see `BENCHMARK_PLAN_V2.md` §2) — and there are no code tools. So absolute scores sit below
-> vendor agents like Exa's Hermes by design. **Read the surface and engine deltas, not the raw
+> full multi-tool vendor agents by design. **Read the surface and engine deltas, not the raw
 > levels.** Headline finding: glm-5.1 beats nemotron-3-ultra at every budget (browsecomp
 > 25-call 0.62 vs 0.35; dsqa 0.67 vs 0.52); scores climb monotonically with tool budget on the
 > fact-finding suites; widesearch inverts (a broad plugin search beats one narrow query); and

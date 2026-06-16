@@ -167,8 +167,8 @@ class OpenRouterHarness(BaseHarness):
             tools = [self._server_tool_def()]
             # web_fetch rides in the same tools array. The model can then both
             # search (excerpts) and fetch full pages — the search+fetch lane
-            # that makes BrowseComp a real browsing test and matches vendor
-            # agents (e.g. Exa's Hermes setup).
+            # that makes BrowseComp a real browsing test and matches full
+            # multi-tool agent setups.
             if self.params.web_fetch:
                 tools.append(self._web_fetch_def())
             payload["tools"] = tools

@@ -4,7 +4,7 @@
 # search + fetch at 25 calls, fetch held CONSTANT (openrouter direct-HTTP) for
 # every arm — the only variable is the search engine. Isolates search quality
 # with fetch enabled. exa / parallel / perplexity × nano / glm-5.1 / nemotron.
-# ~100 tasks/suite (matches Exa's Hermes n=100), browsecomp + dsqa (the suites
+# ~100 tasks/suite, browsecomp + dsqa (the suites
 # where reading full pages matters; hle is reasoning-bound, widesearch niche).
 #
 #   uv run python scripts/benchmark_report.py sweep --spec benchmarks/v2-fetch-controlled.toml [--dry-run]
