@@ -1,6 +1,6 @@
 # Phase 2 — server-tool route, ALL engines, gpt-5.4-nano at 15% (seeded).
 # Replaces the deepseek-v4-pro server-tool pass, which was invalidated by the
-# DSML tool-call leak (BENCHMARK_PLAN §5 Phase 2 checkpoint, commit 00c53df).
+# DSML tool-call leak.
 # The leak probe (2026-06-12) showed every open-weight model leaks its native
 # tool-call markup and breaks the agentic loop; only OpenAI-family models emit
 # loop-compatible structured tool calls. gpt-5.4-nano is the cheap workhorse:

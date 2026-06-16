@@ -9,5 +9,10 @@ dist/
 .pytest_cache/
 runs/
 reports/*
+# Tracked reports: latest (the README preview target) plus the three headline
+# benchmark ladders. Everything else under reports/ stays scratch.
 !reports/latest/
+!reports/glm-v1/
+!reports/nemotron-v1/
+!reports/nano-v1/
 _superseded_runs/

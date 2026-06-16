@@ -49,8 +49,9 @@ each suite, and smaller scales are strict prefixes of larger ones for the
 same `--sample-seed` — all scales share one run directory, so raising the
 scale later extends the run and pays only the delta (`--dry-run` shows
 per-cell progress and delta-only cost). Use `--limit` only for smokes, and
-decide scale increases on budget, not interim scores. `BENCHMARK_PLAN.md`
-at the repo root is the plan of record for large runs.
+decide scale increases on budget, not interim scores. `BENCHMARK_PLAN_V2.md`
+(+ `GLM_PLAN.md` / `NEMOTRON_PLAN.md`) at the repo root are the plans of record
+for large runs.
 
 ## Workflow: interval-paced benchmarking
 

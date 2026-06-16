@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search Engine Benchmark Report</title><style>
+:root{--bg:#FCFCFE;--card:#FFFFFF;--border:#E8E8F0;--border-soft:#F1F1F6;--text:#191923;
+--muted:#6A6A7C;--faint:#9C9CAD;--grape:#7624F4;--royal:#035ADE;--pos:#00BF6F;--pos-ink:#00935A;
+--neg:#FF2D55;--warn:#FFAB00;--warn-ink:#9A6700;--track:#EEF1F6;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;
+font:12px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.page{max-width:1400px;margin:0 auto;padding:26px 28px 36px}
+a{color:inherit;text-decoration:underline;text-decoration-color:rgba(25,25,35,.3)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px}
+.brand{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand svg{color:var(--grape)}
+.topbar .right{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.topbar .dot{width:5px;height:5px;border-radius:50%;background:var(--grape);display:inline-block}
+.banner{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border:1px solid;
+border-radius:10px;padding:13px 16px;margin-bottom:22px}
+.banner.warn{background:#FFF9EC;border-color:#F3E3B5}
+.banner.pos{background:#F0FBF6;border-color:#C9EDDC}
+.banner.note{background:#F5F2FE;border-color:#DFD3F9}
+.banner.note h2::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--grape)}
+.benchbar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:14px}
+.benchbar .row1{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-bottom:8px}
+.benchbar .t{font-size:12.5px;font-weight:650}
+.benchbar .d{color:var(--faint);font-size:10.5px;white-space:nowrap}
+.benchbar .track{height:8px;border-radius:4px;background:var(--track);overflow:hidden}
+.benchbar .track>i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--royal),var(--grape))}
+.benchbar .row2{color:var(--muted);font-size:10.5px;margin-top:7px}
+.banner h2{font-size:12.5px;font-weight:650;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.banner.warn h2::before,.banner.pos h2::before{content:"";width:7px;height:7px;border-radius:50%}
+.banner.warn h2::before{background:var(--warn)}
+.banner.pos h2::before{background:var(--pos)}
+.banner p{color:var(--muted);max-width:880px}
+.headgrid{display:grid;grid-template-columns:1fr 330px;gap:22px;margin-bottom:22px}
+.eyebrow{color:var(--grape);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px}
+h1{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.18;margin-bottom:10px}
+.lede{color:var(--muted);font-size:12px;max-width:640px}
+.paramline{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:10px;max-width:660px}
+.param{font-size:11px;color:var(--muted)}
+.param b{color:#33333F;font-weight:650;margin-right:4px}
+/* surface ladder — the heuristic, shown as steps the model climbs */
+.ladder{display:flex;align-items:stretch;gap:0;margin:16px 0 14px;flex-wrap:wrap}
+.rung{display:flex;flex-direction:column;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 16px;min-width:104px}
+.rung .name{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.rung .desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+.rung .calls{font-size:10px;font-weight:700;color:var(--grape);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.rung .params{margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft);display:flex;flex-direction:column;gap:2px}
+.rung .params .pp{font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rung .params .pp b{color:#33333F;font-weight:600}
+.ladder .arrow{display:flex;align-items:center;color:var(--faint);flex:0 0 auto;padding:0 3px}
+.ladder .arrow svg{width:22px;height:22px}
+.rung.peak{border-color:var(--grape);box-shadow:0 0 0 1px var(--grape) inset}
+.scopebanner{display:flex;gap:11px;align-items:flex-start;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:13px 15px;font-size:13px;color:#7C2D12;max-width:760px;line-height:1.5}
+.scopebanner svg{flex:0 0 auto;width:20px;height:20px;color:#C2410C;margin-top:1px}
+.scopebanner b{font-weight:700}
+.scopebanner .chip{background:#FFE6CC;border-color:#FDBA74;color:#9A3412}
+.metacard{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;align-self:start}
+.metacard .row{display:flex;justify-content:space-between;gap:14px;padding:9px 14px;border-bottom:1px solid var(--border-soft)}
+.metacard .row:last-child{border-bottom:0}
+.metacard .k{color:var(--faint);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding-top:2px;white-space:nowrap}
+.metacard .v{font-size:11px;text-align:right;font-weight:550;word-break:break-word}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:15px 16px 13px}
+.stat .label{color:var(--faint);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
+.stat .num{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.stat .num.pos{color:var(--pos-ink)}
+.stat .num.royal{color:var(--royal)}
+.stat .sub{color:var(--muted);font-size:10.5px;margin-top:7px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:22px;overflow:hidden}
+.section>.head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:13px 18px;border-bottom:1px solid var(--border-soft)}
+.section>.head h3{font-size:13.5px;font-weight:650;letter-spacing:-.01em}
+.section>.head .hint{color:var(--faint);font-size:10.5px}
+table{width:100%;border-collapse:collapse}
+th{color:var(--faint);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+text-align:left;padding:9px 12px;border-bottom:1px solid var(--border-soft);white-space:nowrap}
+td{padding:9px 7px;border-bottom:1px solid var(--border-soft);vertical-align:middle;font-size:11.5px}
+tr:last-child td{border-bottom:0}
+th.r,td.r{text-align:right}
+td.first,th.first{padding-left:18px}
+td.last,th.last{padding-right:18px}
+.sys{font-weight:600;font-size:11.5px;white-space:nowrap}
+.subline{color:var(--faint);font-size:10px;margin-top:1px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.r.num,td .val{white-space:nowrap}
+.chip{display:inline-block;background:#F4F4F9;border:1px solid var(--border);border-radius:4px;
+padding:1px 6px;font-family:var(--mono);font-size:10px;color:#3A3A4A;white-space:nowrap}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:9px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.badge.best{background:rgba(0,191,111,.13);color:var(--pos-ink)}
+.badge.leading{background:rgba(0,191,111,.08);color:var(--pos-ink);border:1px dashed rgba(0,147,90,.4)}
+.ci{color:var(--faint);font-size:9.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.badge.complete{background:rgba(3,90,222,.10);color:var(--royal)}
+.badge.partial{background:rgba(255,171,0,.16);color:var(--warn-ink)}
+.badge.failed{background:rgba(255,45,85,.12);color:#C81E42}
+.badge.running{background:rgba(255,171,0,.16);color:var(--warn-ink)}
+.badge.smoke{background:#F0F0F6;color:var(--muted)}
+.scorecell{min-width:120px}
+.scorecell .val{font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums}
+.bar{height:5px;border-radius:3px;background:var(--track);margin-top:5px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:3px;background:var(--royal)}
+.bar>i.best{background:var(--pos)}
+.num{font-variant-numeric:tabular-nums}
+.matrix td .cellscore{font-weight:650;font-variant-numeric:tabular-nums}
+.matrix td .cellbar{width:84px}
+.matrix .bestdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pos);margin-left:6px;vertical-align:1px}
+.matrix .na{color:var(--faint)}
+tr.degraded{opacity:.4}
+.matrix td.degraded-cell{opacity:.32}
+.degraded-tag{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);border:1px solid var(--border-soft);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.lat-med{font-size:9px;color:var(--faint);font-weight:600}
+.lat-timeout{display:inline-block;font-size:8.5px;font-weight:700;color:#B4232A;background:#FBE9E9;border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.notes .cell{display:flex;gap:14px;padding:13px 18px;border-bottom:1px solid var(--border-soft)}
+.notes .cell:nth-child(odd){border-right:1px solid var(--border-soft)}
+.notes .k{color:var(--faint);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:88px;padding-top:2px}
+.notes .v{color:#33333F;font-size:11.5px}
+.cmds{padding:8px 18px 14px}
+.cmds .k{color:var(--faint);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:10px 0 4px}
+.cmds code{display:block;background:#F6F6FA;border:1px solid var(--border-soft);border-radius:6px;
+padding:6px 10px;font-family:var(--mono);font-size:10.5px;color:#33333F;margin-bottom:5px;
+white-space:pre-wrap;word-break:break-all}
+.footer{display:flex;justify-content:space-between;color:var(--faint);font-size:10.5px;padding-top:4px}
+</style></head>
+<body><div class="page">
+<div class="topbar">
+  <div class="brand"><svg viewBox="0 0 202 171" width="22" height="19" fill="currentColor" aria-hidden="true"><path d="M67.4302 35.0399C104.198 9.01612 134.678 17.2966 165.827 17.2967v35.2998c-40.251 0-53.171-6.3191-78.0033 11.2567-24.3152 17.3108-24.9875 17.7979-37.6806 24.8974l-.001-.001c-7.8316 4.4521-18.1058 7.8405-26.3672 10.0567-7.9255 2.1265-17.0571 3.9905-22.54786 3.9905v-35.3001c-.25785 0 .91072-.0471 3.91992-.6055 2.64553-.4909 5.95014-1.2321 9.48244-2.1796 7.4338-1.9942 14.2777-4.4774 18.1269-6.6817l.0772-.0439.0781-.044 c10.8993-6.0962 10.2335-5.6131 34.4785-22.874l.0205-.0137.0196-.0146Z"/><path d="M200.327 35.1467 140.027 69.9467V.34668l60.3 34.80002Z"/><path d="M.0268892 67.4963c5.4489608 0 14.5454108 1.8198 22.5029108 3.9258 8.0728 2.1365 18.0652 5.3803 25.8643 9.6592l.748.417.0274.0156.0283.0166c12.5125 7.1653 13.118 7.6035 37.4658 24.9375h-.001c24.8062 17.542 37.7342 11.229 77.9632 11.229v35.299c-31.148 0-61.628 8.281-98.396-17.743l-.0195-.013-.0205-.015 c-24.2097-17.236-23.6487-16.829-34.4776-23.029l-.7656-.418c-3.9955-2.103-10.4713-4.384-17.4482-6.231 -3.5381-.936-6.84697-1.667-9.49814-2.151-3.00625-.549-4.20011-.599-3.97363-.599v-35.3Z"/><path d="m199.127 135.047-60.3-34.7v69.5l60.3-34.8Z"/></svg><span>OpenRouter</span></div>
+  <div class="right"><span class="dot"></span>Search evals · benchmark report</div>
+</div>
+
+<div class="benchbar">
+  <div class="row1">
+    <span class="t">Benchmark progress — 15.0% of the full bench driven through</span>
+    <span class="d">3,382 / 22,620 graded tasks across 5 systems × 4 suites · grows in place via nested sampling</span>
+  </div>
+  <div class="track"><i style="width:14.95%"></i></div>
+  <div class="row2">per suite: browsecomp 15% · hle 15% · dsqa 15% · widesearch 15% — partial scales are previews; confidence intervals reflect the current sample, not the full bench</div>
+</div>
+
+<div class="banner warn"><div><h2>3 runs incomplete; scores below treat failed tasks as zero</h2><p>Partial and in-progress runs are flagged per row. Re-running the identical command resumes a run in place. Leaders so far — browsecomp: native leads at 0.374; hle: native leads (within noise) at 0.392; dsqa: native leads at 0.556; widesearch: native leads (within noise) at 0.548.</p></div></div>
+<div class="headgrid">
+  <div>
+    <div class="eyebrow">Search evals</div>
+    <h1>Search Engine Benchmark Report</h1>
+    <div class="ladder">
+      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div>
+        <div class="params"><span class="pp"><b>route</b> plugins:[web]</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>max_chars</b> unset</span><span class="pp"><b>web_fetch</b> off</span></div></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 1</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 3</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
+      <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div>
+        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 25</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
+    </div>
+    <div class="paramline">
+      <span class="param"><b>engines</b> exa · parallel · perplexity</span>
+      <span class="param"><b>tool</b> openrouter:web_search</span>
+      <span class="param"><b>grader</b> openai/gpt-4.1 via openrouter</span>
+    </div>
+    <div class="scopebanner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div><b>Web search only — no page fetch.</b>
+    The model searches and reads short result excerpts; it never opens full pages
+    (<span class="chip">web_fetch</span> off) and has no code tools. So absolute scores sit
+    below full multi-tool vendor agents — <b>read the surface &amp; engine deltas, not the
+    raw levels.</b></div></div>
+  </div>
+  <div class="metacard">
+    <div class="row"><span class="k">Generated</span><span class="v">2026-06-16 19:14 EDT</span></div>
+    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">c79579b</span></span></div>
+    <div class="row"><span class="k">Runs dir</span><span class="v">runs/</span></div>
+    <div class="row"><span class="k">Grader</span><span class="v">openai/gpt-4.1 via openrouter</span></div>
+    <div class="row"><span class="k">Suites</span><span class="v">browsecomp, hle, dsqa, widesearch</span></div>
+  </div>
+</div>
+
+<div class="statgrid">
+  <div class="stat"><div class="label">Suites covered</div>
+    <div class="num royal">4/4</div>
+    <div class="sub">browsecomp, hle, dsqa, widesearch</div></div>
+  <div class="stat"><div class="label">Systems evaluated</div>
+    <div class="num">4</div>
+    <div class="sub">20 bench run dirs · 0 validation runs (inventory only)</div></div>
+  <div class="stat"><div class="label">Tasks graded</div>
+    <div class="num ">3,382/3,395</div>
+    <div class="sub">13 failed tasks in finished runs (scored as zero)</div></div>
+  <div class="stat"><div class="label">Bench spend</div>
+    <div class="num">$229.95</div>
+    <div class="sub">agent $211.94 · grader $18.02 · excl. smokes/probes</div></div>
+</div>
+<div class="section matrix">
+  <div class="head"><h3>Score matrix — system × suite</h3>
+  <span class="hint">Failed-as-zero primary metric per suite with graded sample size (n / full suite). Green dot marks the suite leader. Validation runs (smokes/probes/POCs) are excluded; see the run inventory.</span></div>
+  <table><thead><tr><th class="first">System</th><th class='r'>browsecomp</th><th class='r'>hle</th><th class='r'>dsqa</th><th class='r last'>widesearch</th></tr></thead>
+  <tbody><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openai/gpt-5.4-nano · exa</div></td><td class="r"><span class="cellscore">0.195</span><div class="subline" style="max-width:none">n=190/1266</div><div class="bar cellbar" style="margin-left:auto"><i style="width:19.5%"></i></div></td><td class="r"><span class="cellscore">0.340</span><div class="subline" style="max-width:none">n=324/2158</div><div class="bar cellbar" style="margin-left:auto"><i style="width:34.0%"></i></div></td><td class="r"><span class="cellscore">0.326</span><div class="subline" style="max-width:none">n=135/900</div><div class="bar cellbar" style="margin-left:auto"><i style="width:32.6%"></i></div></td><td class="r last"><span class="cellscore">0.455</span><div class="subline" style="max-width:none">n=30/200</div><div class="bar cellbar" style="margin-left:auto"><i style="width:45.5%"></i></div></td></tr><tr><td class="first"><div class="sys">gpt-5-4-nano-native</div><div class="subline">openai/gpt-5.4-nano · native</div></td><td class="r"><span class="cellscore">0.374</span><span class="bestdot"></span><div class="subline" style="max-width:none">n=190/1266</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:37.4%"></i></div></td><td class="r"><span class="cellscore">0.392</span><span class="bestdot"></span><div class="subline" style="max-width:none">n=317/2158</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:39.2%"></i></div></td><td class="r"><span class="cellscore">0.556</span><span class="bestdot"></span><div class="subline" style="max-width:none">n=130/900</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:55.6%"></i></div></td><td class="r last"><span class="cellscore">0.548</span><span class="bestdot"></span><div class="subline" style="max-width:none">n=29/200</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:54.8%"></i></div></td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openai/gpt-5.4-nano · parallel</div></td><td class="r"><span class="cellscore">0.074</span><div class="subline" style="max-width:none">n=190/1266</div><div class="bar cellbar" style="margin-left:auto"><i style="width:7.4%"></i></div></td><td class="r"><span class="cellscore">0.210</span><div class="subline" style="max-width:none">n=324/2158</div><div class="bar cellbar" style="margin-left:auto"><i style="width:21.0%"></i></div></td><td class="r"><span class="cellscore">0.133</span><div class="subline" style="max-width:none">n=135/900</div><div class="bar cellbar" style="margin-left:auto"><i style="width:13.3%"></i></div></td><td class="r last"><span class="cellscore">0.345</span><div class="subline" style="max-width:none">n=30/200</div><div class="bar cellbar" style="margin-left:auto"><i style="width:34.5%"></i></div></td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openai/gpt-5.4-nano · perplexity</div></td><td class="r"><span class="cellscore">0.189</span><div class="subline" style="max-width:none">n=190/1266</div><div class="bar cellbar" style="margin-left:auto"><i style="width:18.9%"></i></div></td><td class="r"><span class="cellscore">0.346</span><div class="subline" style="max-width:none">n=324/2158</div><div class="bar cellbar" style="margin-left:auto"><i style="width:34.6%"></i></div></td><td class="r"><span class="cellscore">0.296</span><div class="subline" style="max-width:none">n=135/900</div><div class="bar cellbar" style="margin-left:auto"><i style="width:29.6%"></i></div></td><td class="r last"><span class="cellscore">0.530</span><div class="subline" style="max-width:none">n=30/200</div><div class="bar cellbar" style="margin-left:auto"><i style="width:53.0%"></i></div></td></tr></tbody></table>
+</div>
+<div class="section matrix">
+  <div class="head"><h3>Price matrix — $/task, system × suite</h3>
+  <span class="hint">Known provider cost per graded task (agent + grader). Green dot marks the cheapest engine row per suite (degraded/no-retrieval rows excluded). Bar length is relative to the most expensive cell. Read alongside the score matrix: a row that scores nearly as high at a fraction of the cost is the value pick.</span></div>
+  <table><thead><tr><th class="first">System</th><th class='r'>browsecomp</th><th class='r'>hle</th><th class='r'>dsqa</th><th class='r last'>widesearch</th></tr></thead>
+  <tbody><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openai/gpt-5.4-nano · exa</div></td><td class="r"><span class="cellscore">$0.045</span><div class="subline" style="max-width:none">agent $0.041/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:12.8%"></i></div></td><td class="r"><span class="cellscore">$0.045</span><div class="subline" style="max-width:none">agent $0.040/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:12.9%"></i></div></td><td class="r"><span class="cellscore">$0.070</span><div class="subline" style="max-width:none">agent $0.064/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:20.0%"></i></div></td><td class="r last"><span class="cellscore">$0.166</span><div class="subline" style="max-width:none">agent $0.143/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:47.7%"></i></div></td></tr><tr><td class="first"><div class="sys">gpt-5-4-nano-native</div><div class="subline">openai/gpt-5.4-nano · native</div></td><td class="r"><span class="cellscore">$0.213</span><div class="subline" style="max-width:none">agent $0.211/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:61.2%"></i></div></td><td class="r"><span class="cellscore">$0.091</span><div class="subline" style="max-width:none">agent $0.088/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:26.1%"></i></div></td><td class="r"><span class="cellscore">$0.260</span><div class="subline" style="max-width:none">agent $0.256/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:74.6%"></i></div></td><td class="r last"><span class="cellscore">$0.348</span><div class="subline" style="max-width:none">agent $0.314/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:100.0%"></i></div></td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openai/gpt-5.4-nano · parallel</div></td><td class="r"><span class="cellscore">$0.038</span><span class="bestdot"></span><div class="subline" style="max-width:none">agent $0.034/task</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:11.0%"></i></div></td><td class="r"><span class="cellscore">$0.042</span><div class="subline" style="max-width:none">agent $0.037/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:12.0%"></i></div></td><td class="r"><span class="cellscore">$0.055</span><span class="bestdot"></span><div class="subline" style="max-width:none">agent $0.050/task</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:15.7%"></i></div></td><td class="r last"><span class="cellscore">$0.172</span><div class="subline" style="max-width:none">agent $0.149/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:49.4%"></i></div></td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openai/gpt-5.4-nano · perplexity</div></td><td class="r"><span class="cellscore">$0.038</span><div class="subline" style="max-width:none">agent $0.034/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:11.0%"></i></div></td><td class="r"><span class="cellscore">$0.040</span><span class="bestdot"></span><div class="subline" style="max-width:none">agent $0.036/task</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:11.6%"></i></div></td><td class="r"><span class="cellscore">$0.062</span><div class="subline" style="max-width:none">agent $0.054/task</div><div class="bar cellbar" style="margin-left:auto"><i style="width:17.9%"></i></div></td><td class="r last"><span class="cellscore">$0.159</span><span class="bestdot"></span><div class="subline" style="max-width:none">agent $0.129/task</div><div class="bar cellbar" style="margin-left:auto"><i class=best style="width:45.5%"></i></div></td></tr></tbody></table>
+</div>
+<div id="preview-end"></div>
+<div class="section">
+  <div class="head"><h3>browsecomp leaderboard</h3>
+  <span class="hint">Hard factual questions requiring persistent web browsing. Metric: accuracy. Primary metric: Score, failed-as-zero, with 95% Wilson CI.</span></div>
+  <table><thead><tr>
+    <th class="first">#</th><th>System</th><th>Model</th><th>Engine</th>
+    <th>Score (failed=0)</th><th class="r">Excl. failed</th>
+    <th class="r">Tasks</th><th class="r">Cites/task</th><th class="r">Agent cost</th>
+    <th class="r">$ / task</th><th class="r last">Status</th>
+  </tr></thead><tbody><tr>
+  <td class="first num">1</td>
+  <td><div class="sys">gpt-5-4-nano-native</div><div class="subline">openrouter-web-search-gpt-5-4-nano-native-browsecomp-nano-v1-scale-seed0-ddf11364040c</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">native</span></td>
+  <td class="scorecell"><span class="val">0.374</span><div class="ci">CI 0.31–0.44</div><div class="bar"><i class="best" style="width:37.4%"></i></div></td>
+  <td class="r num">0.374</td>
+  <td class="r num">190/190</td>
+  <td class="r num">3</td>
+  <td class="r num">$40.05<div class="subline" style="max-width:none">+$0.44 grading</div></td>
+  <td class="r num">$0.213</td>
+  <td class="r last"><span class="badge best">Best</span></td>
+</tr><tr>
+  <td class="first num">2</td>
+  <td><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openrouter-web-search-gpt-5-4-nano-exa-browsecomp-nano-v1-scale-seed0-c3c234be31e6</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">exa</span></td>
+  <td class="scorecell"><span class="val">0.195</span><div class="ci">CI 0.14–0.26</div><div class="bar"><i style="width:19.5%"></i></div></td>
+  <td class="r num">0.195</td>
+  <td class="r num">190/190</td>
+  <td class="r num">40</td>
+  <td class="r num">$7.78<div class="subline" style="max-width:none">+$0.72 grading</div></td>
+  <td class="r num">$0.045</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">3</td>
+  <td><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openrouter-web-search-gpt-5-4-nano-perplexity-browsecomp-nano-v1-scale-seed0-03daf670c7c5</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">perplexity</span></td>
+  <td class="scorecell"><span class="val">0.189</span><div class="ci">CI 0.14–0.25</div><div class="bar"><i style="width:18.9%"></i></div></td>
+  <td class="r num">0.189</td>
+  <td class="r num">190/190</td>
+  <td class="r num">40</td>
+  <td class="r num">$6.40<div class="subline" style="max-width:none">+$0.87 grading</div></td>
+  <td class="r num">$0.038</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">4</td>
+  <td><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openrouter-web-search-gpt-5-4-nano-parallel-browsecomp-nano-v1-scale-seed0-ca9cfaace126</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">parallel</span></td>
+  <td class="scorecell"><span class="val">0.074</span><div class="ci">CI 0.04–0.12</div><div class="bar"><i style="width:7.4%"></i></div></td>
+  <td class="r num">0.074</td>
+  <td class="r num">190/190</td>
+  <td class="r num">36</td>
+  <td class="r num">$6.44<div class="subline" style="max-width:none">+$0.81 grading</div></td>
+  <td class="r num">$0.038</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr></tbody></table>
+</div><div class="section">
+  <div class="head"><h3>hle leaderboard</h3>
+  <span class="hint">Text-only retrieval subset of Humanity&#x27;s Last Exam. Metric: accuracy. Primary metric: Score, failed-as-zero, with 95% Wilson CI.</span></div>
+  <table><thead><tr>
+    <th class="first">#</th><th>System</th><th>Model</th><th>Engine</th>
+    <th>Score (failed=0)</th><th class="r">Excl. failed</th>
+    <th class="r">Tasks</th><th class="r">Cites/task</th><th class="r">Agent cost</th>
+    <th class="r">$ / task</th><th class="r last">Status</th>
+  </tr></thead><tbody><tr>
+  <td class="first num">1</td>
+  <td><div class="sys">gpt-5-4-nano-native</div><div class="subline">openrouter-web-search-gpt-5-4-nano-native-hle-nano-v1-scale-seed0-0b6ca4cbe484</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">native</span></td>
+  <td class="scorecell"><span class="val">0.392</span><div class="ci">CI 0.34–0.45</div><div class="bar"><i style="width:39.2%"></i></div></td>
+  <td class="r num">0.401</td>
+  <td class="r num">317/324</td>
+  <td class="r num">1</td>
+  <td class="r num">$27.77<div class="subline" style="max-width:none">+$1.08 grading</div></td>
+  <td class="r num">$0.091</td>
+  <td class="r last"><span class="badge leading">Leading</span> <span class="badge partial">Partial</span></td>
+</tr><tr>
+  <td class="first num">2</td>
+  <td><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openrouter-web-search-gpt-5-4-nano-perplexity-hle-nano-v1-scale-seed0-59b6be82846e</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">perplexity</span></td>
+  <td class="scorecell"><span class="val">0.346</span><div class="ci">CI 0.30–0.40</div><div class="bar"><i style="width:34.6%"></i></div></td>
+  <td class="r num">0.346</td>
+  <td class="r num">324/324</td>
+  <td class="r num">29</td>
+  <td class="r num">$11.58<div class="subline" style="max-width:none">+$1.49 grading</div></td>
+  <td class="r num">$0.040</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">3</td>
+  <td><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openrouter-web-search-gpt-5-4-nano-exa-hle-nano-v1-scale-seed0-56063d88c927</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">exa</span></td>
+  <td class="scorecell"><span class="val">0.340</span><div class="ci">CI 0.29–0.39</div><div class="bar"><i style="width:34.0%"></i></div></td>
+  <td class="r num">0.340</td>
+  <td class="r num">324/324</td>
+  <td class="r num">27</td>
+  <td class="r num">$13.05<div class="subline" style="max-width:none">+$1.52 grading</div></td>
+  <td class="r num">$0.045</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">4</td>
+  <td><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openrouter-web-search-gpt-5-4-nano-parallel-hle-nano-v1-scale-seed0-43a33cb83fc0</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">parallel</span></td>
+  <td class="scorecell"><span class="val">0.210</span><div class="ci">CI 0.17–0.26</div><div class="bar"><i style="width:21.0%"></i></div></td>
+  <td class="r num">0.210</td>
+  <td class="r num">324/324</td>
+  <td class="r num">29</td>
+  <td class="r num">$12.01<div class="subline" style="max-width:none">+$1.52 grading</div></td>
+  <td class="r num">$0.042</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr></tbody></table>
+</div><div class="section">
+  <div class="head"><h3>dsqa leaderboard</h3>
+  <span class="hint">DeepSearchQA multi-step information seeking. Metric: accuracy. Primary metric: Score, failed-as-zero, with 95% Wilson CI.</span></div>
+  <table><thead><tr>
+    <th class="first">#</th><th>System</th><th>Model</th><th>Engine</th>
+    <th>Score (failed=0)</th><th class="r">Excl. failed</th>
+    <th class="r">Tasks</th><th class="r">Cites/task</th><th class="r">Agent cost</th>
+    <th class="r">$ / task</th><th class="r last">Status</th>
+  </tr></thead><tbody><tr>
+  <td class="first num">1</td>
+  <td><div class="sys">gpt-5-4-nano-native</div><div class="subline">openrouter-web-search-gpt-5-4-nano-native-dsqa-nano-v1-scale-seed0-39f4e07e17c6</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">native</span></td>
+  <td class="scorecell"><span class="val">0.556</span><div class="ci">CI 0.47–0.64</div><div class="bar"><i class="best" style="width:55.6%"></i></div></td>
+  <td class="r num">0.577</td>
+  <td class="r num">130/135</td>
+  <td class="r num">3</td>
+  <td class="r num">$33.28<div class="subline" style="max-width:none">+$0.51 grading</div></td>
+  <td class="r num">$0.260</td>
+  <td class="r last"><span class="badge best">Best</span> <span class="badge partial">Partial</span></td>
+</tr><tr>
+  <td class="first num">2</td>
+  <td><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openrouter-web-search-gpt-5-4-nano-exa-dsqa-nano-v1-scale-seed0-097b6b4a4064</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">exa</span></td>
+  <td class="scorecell"><span class="val">0.326</span><div class="ci">CI 0.25–0.41</div><div class="bar"><i style="width:32.6%"></i></div></td>
+  <td class="r num">0.326</td>
+  <td class="r num">135/135</td>
+  <td class="r num">60</td>
+  <td class="r num">$8.57<div class="subline" style="max-width:none">+$0.84 grading</div></td>
+  <td class="r num">$0.070</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">3</td>
+  <td><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openrouter-web-search-gpt-5-4-nano-perplexity-dsqa-nano-v1-scale-seed0-09d3bf217fa0</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">perplexity</span></td>
+  <td class="scorecell"><span class="val">0.296</span><div class="ci">CI 0.23–0.38</div><div class="bar"><i style="width:29.6%"></i></div></td>
+  <td class="r num">0.296</td>
+  <td class="r num">135/135</td>
+  <td class="r num">56</td>
+  <td class="r num">$7.25<div class="subline" style="max-width:none">+$1.18 grading</div></td>
+  <td class="r num">$0.062</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">4</td>
+  <td><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openrouter-web-search-gpt-5-4-nano-parallel-dsqa-nano-v1-scale-seed0-83e840e82ba1</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">parallel</span></td>
+  <td class="scorecell"><span class="val">0.133</span><div class="ci">CI 0.09–0.20</div><div class="bar"><i style="width:13.3%"></i></div></td>
+  <td class="r num">0.133</td>
+  <td class="r num">135/135</td>
+  <td class="r num">48</td>
+  <td class="r num">$6.73<div class="subline" style="max-width:none">+$0.65 grading</div></td>
+  <td class="r num">$0.055</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr></tbody></table>
+</div><div class="section">
+  <div class="head"><h3>widesearch leaderboard</h3>
+  <span class="hint">Broad fact collection scored by table/item matching. Metric: F1 by item. Primary metric: F1 by item, failed-as-zero, with 95% Wilson CI.</span></div>
+  <table><thead><tr>
+    <th class="first">#</th><th>System</th><th>Model</th><th>Engine</th>
+    <th>F1 by item (failed=0)</th><th class="r">Excl. failed</th>
+    <th class="r">Tasks</th><th class="r">Cites/task</th><th class="r">Agent cost</th>
+    <th class="r">$ / task</th><th class="r last">Status</th>
+  </tr></thead><tbody><tr>
+  <td class="first num">1</td>
+  <td><div class="sys">gpt-5-4-nano-native</div><div class="subline">openrouter-web-search-gpt-5-4-nano-native-widesearch-nano-v1-scale-seed0-4a28b18f83ca</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">native</span></td>
+  <td class="scorecell"><span class="val">0.548</span><div class="ci">CI 0.37–0.71</div><div class="bar"><i style="width:54.8%"></i></div></td>
+  <td class="r num">0.567</td>
+  <td class="r num">29/30</td>
+  <td class="r num">6</td>
+  <td class="r num">$9.11<div class="subline" style="max-width:none">+$0.98 grading</div></td>
+  <td class="r num">$0.348</td>
+  <td class="r last"><span class="badge leading">Leading</span> <span class="badge partial">Partial</span></td>
+</tr><tr>
+  <td class="first num">2</td>
+  <td><div class="sys">3call-gpt-5-4-nano-perplexity</div><div class="subline">openrouter-web-search-gpt-5-4-nano-perplexity-widesearch-nano-v1-scale-seed0-ed5aef4ce018</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">perplexity</span></td>
+  <td class="scorecell"><span class="val">0.530</span><div class="ci">CI 0.36–0.69</div><div class="bar"><i style="width:53.0%"></i></div></td>
+  <td class="r num">0.530</td>
+  <td class="r num">30/30</td>
+  <td class="r num">162</td>
+  <td class="r num">$3.88<div class="subline" style="max-width:none">+$0.88 grading</div></td>
+  <td class="r num">$0.159</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">3</td>
+  <td><div class="sys">3call-gpt-5-4-nano-exa</div><div class="subline">openrouter-web-search-gpt-5-4-nano-exa-widesearch-nano-v1-scale-seed0-90a756d76269</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">exa</span></td>
+  <td class="scorecell"><span class="val">0.455</span><div class="ci">CI 0.29–0.63</div><div class="bar"><i style="width:45.5%"></i></div></td>
+  <td class="r num">0.455</td>
+  <td class="r num">30/30</td>
+  <td class="r num">162</td>
+  <td class="r num">$4.30<div class="subline" style="max-width:none">+$0.68 grading</div></td>
+  <td class="r num">$0.166</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr><tr>
+  <td class="first num">4</td>
+  <td><div class="sys">3call-gpt-5-4-nano-parallel</div><div class="subline">openrouter-web-search-gpt-5-4-nano-parallel-widesearch-nano-v1-scale-seed0-0e916adae9fb</div></td>
+  <td><span class="chip">gpt-5.4-nano</span></td>
+  <td><span class="chip">parallel</span></td>
+  <td class="scorecell"><span class="val">0.345</span><div class="ci">CI 0.20–0.52</div><div class="bar"><i style="width:34.5%"></i></div></td>
+  <td class="r num">0.345</td>
+  <td class="r num">30/30</td>
+  <td class="r num">164</td>
+  <td class="r num">$4.48<div class="subline" style="max-width:none">+$0.68 grading</div></td>
+  <td class="r num">$0.172</td>
+  <td class="r last"><span class="badge complete">Complete</span></td>
+</tr></tbody></table>
+</div>
+<div class="section">
+  <div class="head"><h3>widesearch metric breakdown</h3><span class="hint">Failed-as-zero averages across graded tasks.</span></div>
+  <table><thead><tr><th class="first">System</th><th class='r'>F1 by item</th><th class='r'>F1 by row</th><th class='r'>Precision by item</th><th class='r'>Precision by row</th><th class='r'>Recall by item</th><th class='r'>Recall by row</th><th class='r last'>Success rate</th></tr></thead><tbody><tr><td class="first"><div class="sys">gpt-5-4-nano-native</div></td><td class='r num'>0.548</td><td class='r num'>0.282</td><td class='r num'>0.705</td><td class='r num'>0.338</td><td class='r num'>0.501</td><td class='r num'>0.261</td><td class='r num last'>0.067</td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-perplexity</div></td><td class='r num'>0.530</td><td class='r num'>0.338</td><td class='r num'>0.672</td><td class='r num'>0.398</td><td class='r num'>0.496</td><td class='r num'>0.322</td><td class='r num last'>0.133</td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-exa</div></td><td class='r num'>0.455</td><td class='r num'>0.220</td><td class='r num'>0.582</td><td class='r num'>0.302</td><td class='r num'>0.421</td><td class='r num'>0.198</td><td class='r num last'>0.000</td></tr><tr><td class="first"><div class="sys">3call-gpt-5-4-nano-parallel</div></td><td class='r num'>0.345</td><td class='r num'>0.164</td><td class='r num'>0.488</td><td class='r num'>0.254</td><td class='r num'>0.308</td><td class='r num'>0.144</td><td class='r num last'>0.000</td></tr></tbody></table>
+</div>
+<div class="section">
+  <div class="head"><h3>Methodology notes</h3><span class="hint">How to read this report</span></div>
+  <div class="notes">
+    <div class="cell"><div class="k">Cost efficiency</div><div class="v">Higher per-task spend (deeper search budgets) buys diminishing accuracy — a cheaper engine/surface usually gets most of the way. Per suite, the best score-per-dollar within 90% of the top score: <b>widesearch</b>: 3call-gpt-5-4-nano-perplexity reaches 97% of the top score (0.530 vs 0.548) at <b>2.2× lower cost</b> ($0.159 vs $0.348/task). Read $/task alongside score before defaulting to the most expensive surface.</div></div>
+    <div class="cell"><div class="k">Scoring</div><div class="v">Headline numbers use <b>failed-as-zero</b>: tasks that exhausted retries count as 0. The failed-excluded column averages only graded tasks; a large gap between the two signals harness reliability problems, not search quality. Each score carries a 95% Wilson interval; the green <b>Best</b> badge requires the leader's interval to clear every runner-up's, otherwise the row is marked <b>Leading</b> (within noise).</div></div>
+    <div class="cell"><div class="k">Grading</div><div class="v">Grader: <span class="chip">openai/gpt-4.1 via openrouter</span>, matching upstream's gpt-4.1 grading for comparability. Override with <span class="chip">SEARCH_EVALS_GRADER_MODEL</span>.</div></div>
+    <div class="cell"><div class="k">Cost</div><div class="v">Provider-reported request cost where available, split by agent vs grader stage. "Known" totals exclude attempts whose providers did not report cost.</div></div>
+    <div class="cell"><div class="k">Surfaces</div><div class="v">Each engine is run across the search-call ladder: <b>plugin</b> (one pre-inference search on the verbatim user message, results injected before generation) · <b>1call</b> (one model-authored search) · <b>3call</b> · <b>25call</b> (the server-tool hard cap — best effort). plugin-vs-1call isolates query quality at a fixed one search; 1call→3call→25call isolates search depth. Per-result content is each engine's native size (uncapped): exa ~2k chars, parallel ~0.9k, perplexity ~0.5k.</div></div>
+    <div class="cell"><div class="k">Harness scope — search, no fetch</div><div class="v">Not comparable to full multi-tool agent benchmarks: those agents add model-driven page <b>fetching</b> + code tools. Here the model searches and reads capped excerpts but does <b>not</b> fetch full URLs — <span class="chip">web_fetch</span> is off, measured neutral-when-capped and unobservable via the API (it executes but reports no usage). Scores therefore sit below fetch-enabled agents by design; read engine and surface deltas, not absolute levels. <span class="chip">firecrawl</span> is omitted (BYOK key not configured → broken retrieval), and <span class="chip">native</span> is omitted (plugin-native 400s for non-OpenAI models, and server-tool native ignores the call/char caps — not a like-for-like backend).</div></div>
+    <div class="cell"><div class="k">Comparability</div><div class="v">Rows in one suite leaderboard share the same dataset fingerprint and suite instructions (enforced by the config hash). Smoke/probe runs are excluded. All shown rows are pinned single-engine server-tool or plugin lanes at a fixed reasoning model, so deltas isolate the search backend and the surface. Plugin-route rows inherit OpenRouter's default <span class="chip">search_prompt</span> (the instruction attaching results to the message), an uncontrolled variable of that surface — read plugin as a product, not a like-for-like backend vs the server-tool rows.</div></div>
+  </div>
+</div>
+<div class="footer">
+  <span>Generated locally by scripts/benchmark_report.py.</span>
+  <span>search_evals · c79579b</span>
+</div>
+</div>
+<script>
+document.documentElement.setAttribute('data-page-height', String(document.body.scrollHeight));
+var _pe=document.getElementById('preview-end');
+if(_pe)document.documentElement.setAttribute('data-preview-height', String(Math.round(_pe.getBoundingClientRect().bottom + window.scrollY)));
+</script>
+</body></html>

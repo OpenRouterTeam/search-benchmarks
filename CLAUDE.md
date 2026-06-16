@@ -35,11 +35,12 @@ Credentials come from `.env` (`set -a; source .env; set +a`): needs
 
 ## House rules
 
-- `BENCHMARK_PLAN.md` is the plan of record for large runs — read it before
-  proposing or starting any multi-cell benchmark; keep it updated when
-  measured numbers change. Each phase's sweep inputs live in
-  `benchmarks/*.toml` (`sweep --spec <file>`; CLI flags override) — edit the
-  spec, don't hand-assemble flags, so run inputs stay version-controlled.
+- `BENCHMARK_PLAN_V2.md` (+ `GLM_PLAN.md` / `NEMOTRON_PLAN.md`) are the plans of
+  record for large runs — read them before proposing or starting any multi-cell
+  benchmark; keep them updated when measured numbers change. Each lane's sweep
+  inputs live in `benchmarks/*.toml` (`sweep --spec <file>`; CLI flags override)
+  — edit the spec, don't hand-assemble flags, so run inputs stay
+  version-controlled.
 - Cost estimates must come from `sweep --dry-run` (measured per-task rates),
   never from token-price arithmetic alone.
 - Phased discipline: smoke (--limit 5) → calibration (--sample 50) → scaled
