@@ -33,6 +33,16 @@
 > `uv run python scripts/benchmark_report.py report --bench <suffix> --out reports/<suffix> --watch 30`
 > (hot-reloads on new results; the page auto-refreshes in the browser).
 
+> **🔧 Search providers — tune your engine config here:** every system in the report below is
+> defined in [`systems.toml`](systems.toml). The glm-5.1 ladder above ran the engine matrices
+> ([`web_search_engines_*`](systems.toml) for plugin/1-call/3-call/25-call) with each engine's
+> default settings. **If you're exa / parallel / perplexity / firecrawl and your engine is
+> mis-tuned**, edit your engine's entry in [`systems.toml`](systems.toml):
+> `max_results_per_search`, `max_characters` (content length per result — currently unset, so
+> each engine returns its native shape), provider routing, or a BYOK key (e.g. firecrawl is
+> dimmed in the report because its BYOK key is unconfigured → 0 citations). Open a PR or issue
+> with the change and we'll re-run that engine's column.
+
 [![Latest benchmark report (preview)](reports/latest/benchmark-report-preview.png)](reports/latest/benchmark-report.png)
 
 This repository is the OpenRouter-maintained fork of
