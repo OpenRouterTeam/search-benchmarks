@@ -1841,6 +1841,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
 {stats_html}
 {matrix_html}
 {cost_latency_html}
+<div id="preview-end"></div>
 {''.join(suite_sections)}
 {''.join(detail_sections)}
 {notes_html}
@@ -1849,7 +1850,11 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
   <span>search_evals · {esc(commit)}</span>
 </div>
 </div>
-<script>document.documentElement.setAttribute('data-page-height', String(document.body.scrollHeight));</script>
+<script>
+document.documentElement.setAttribute('data-page-height', String(document.body.scrollHeight));
+var _pe=document.getElementById('preview-end');
+if(_pe)document.documentElement.setAttribute('data-preview-height', String(Math.round(_pe.getBoundingClientRect().bottom + window.scrollY)));
+</script>
 </body></html>"""
 
 
@@ -1887,21 +1892,20 @@ def screenshot_html(html_path: Path, png_path: Path, width: int = 1400, viewport
             "--force-device-scale-factor=2",
         ]
         dom_file = Path(profile) / "dom.html"
-        # Pass 1: measure full page height via the data-page-height attribute.
-        # viewport_only skips measurement and captures a fixed-height top crop
-        # (the README preview image).
-        height = 1150
-        if not viewport_only:
-            height = 4000
-            _run_chrome(
-                base + [f"--window-size={width},1200", "--virtual-time-budget=4000", "--dump-dom", url],
-                stdout_path=dom_file,
-                done=lambda: dom_file.exists() and "data-page-height" in dom_file.read_text(errors="replace"),
-            )
-            if dom_file.exists():
-                match = re.search(r'data-page-height="(\d+)"', dom_file.read_text(errors="replace"))
-                if match:
-                    height = int(match.group(1)) + 24
+        # Pass 1: measure the page. viewport_only (the README preview) crops to
+        # the #preview-end anchor — header through the latency matrix, nothing
+        # else; the full report measures the whole document height.
+        attr = "data-preview-height" if viewport_only else "data-page-height"
+        height = 1150 if viewport_only else 4000
+        _run_chrome(
+            base + [f"--window-size={width},1200", "--virtual-time-budget=4000", "--dump-dom", url],
+            stdout_path=dom_file,
+            done=lambda: dom_file.exists() and attr in dom_file.read_text(errors="replace"),
+        )
+        if dom_file.exists():
+            match = re.search(rf'{attr}="(\d+)"', dom_file.read_text(errors="replace"))
+            if match:
+                height = int(match.group(1)) + (12 if viewport_only else 24)
         # Pass 2: screenshot at measured height.
         png_path.unlink(missing_ok=True)
         _run_chrome(
