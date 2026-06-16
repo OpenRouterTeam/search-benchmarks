@@ -371,33 +371,67 @@ class EvalRunner:
         """Aggregate per-attempt agent wall-clock (agent_duration_s) across the
         graded attempt of each task. Returns None when no timing was recorded
         (older runs, or harnesses that predate timing) so the report can show
-        '—' instead of a misleading zero."""
+        '—' instead of a misleading zero.
+
+        Agent timeouts are **right-censored**: a task that hit the wall-clock
+        deadline didn't finish, but it cost at least `task_timeout` seconds.
+        Excluding it flatters a flaky engine (only its fast completions count)
+        and lets an engine 'win' latency by abandoning hard queries. So each
+        agent-timeout is ranked into the percentiles at the deadline value.
+        Because timeouts are always the largest values, the **median** stays a
+        real completion (as long as <50% time out) — it just shifts up to
+        reflect the slow mass, and barely depends on the exact deadline. The
+        completion-only median is kept too (`agent_seconds_median_completed`)
+        for the clean-when-it-finishes view."""
         durations: list[float] = []
+        timeout_count = 0
         for index, task in enumerate(tasks, start=1):
             task_dir = self._task_dir(index, task.id)
             result = _load_task_result(task_dir / "result.json")
-            if result is None:
+            if result is not None:
+                timing = read_json_or_none(
+                    task_dir / "attempts" / f"{result.attempt_number:06d}" / "agent" / "timing.json"
+                )
+                value = (timing or {}).get("agent_duration_s") if isinstance(timing, dict) else None
+                if isinstance(value, (int, float)):
+                    durations.append(float(value))
                 continue
-            timing = read_json_or_none(
-                task_dir / "attempts" / f"{result.attempt_number:06d}" / "agent" / "timing.json"
-            )
-            value = (timing or {}).get("agent_duration_s") if isinstance(timing, dict) else None
-            if isinstance(value, (int, float)):
-                durations.append(float(value))
+            # No result — count it as an agent timeout only when the recorded
+            # error is a wall-clock deadline (not a provider/validation error,
+            # which carries no meaningful latency).
+            error = read_json_or_none(task_dir / "error.json")
+            if (
+                self.task_timeout is not None
+                and isinstance(error, dict)
+                and error.get("type") == "TaskTimeoutError"
+                and "agent attempt exceeded" in str(error.get("message", ""))
+            ):
+                timeout_count += 1
         if not durations:
             return None
-        durations.sort()
+        completed = sorted(durations)
+        deadline_pad = (
+            [float(self.task_timeout)] * timeout_count
+            if timeout_count and self.task_timeout is not None
+            else []
+        )
+        censored = sorted(durations + deadline_pad)
 
-        def pct(p: float) -> float:
-            return durations[min(len(durations) - 1, int(len(durations) * p))]
+        def pct(values: list[float], p: float) -> float:
+            return values[min(len(values) - 1, int(len(values) * p))]
 
         return {
-            "agent_seconds_mean": round(statistics.mean(durations), 2),
-            "agent_seconds_median": round(statistics.median(durations), 2),
-            "agent_seconds_p90": round(pct(0.90), 2),
-            "agent_seconds_p95": round(pct(0.95), 2),
-            "agent_seconds_max": round(durations[-1], 2),
-            "n": len(durations),
+            # mean stays over completions only — the deadline value would
+            # distort it (unlike the median, which is robust to the tail).
+            "agent_seconds_mean": round(statistics.mean(completed), 2),
+            # headline median + tail are censored (timeouts ranked at deadline).
+            "agent_seconds_median": round(statistics.median(censored), 2),
+            "agent_seconds_p90": round(pct(censored, 0.90), 2),
+            "agent_seconds_p95": round(pct(censored, 0.95), 2),
+            "agent_seconds_max": round(censored[-1], 2),
+            "agent_seconds_median_completed": round(statistics.median(completed), 2),
+            "timeouts_censored": timeout_count,
+            "n": len(completed),
         }
 
     def _log_summary(self, summary: dict[str, Any]) -> None:

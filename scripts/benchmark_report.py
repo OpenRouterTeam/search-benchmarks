@@ -19,6 +19,7 @@ import html
 import json
 import re
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -63,6 +64,11 @@ class RunRecord:
     live_score_sum: float = 0.0
     metrics_zero: dict = field(default_factory=dict)
     metrics_excl: dict = field(default_factory=dict)
+    # Latency censored for agent timeouts (computed from on-disk timing.json +
+    # error.json during discovery; None when no timing data exists). Timeouts
+    # are ranked into the percentiles at their deadline, so the median reflects
+    # the slow tail instead of only the completions. See discover_runs.
+    censored_latency: dict | None = None
 
     @property
     def system(self) -> str:
@@ -261,11 +267,24 @@ class RunRecord:
         return float(self.cost.get("known_cost_usd", 0.0))
 
     def _latency(self, key: str) -> float | None:
-        lat = self.summary.get("latency") if self.summary else None
+        # Prefer the on-disk censored aggregate (timeouts ranked at the deadline)
+        # when available; fall back to the summary's stored block for runs whose
+        # task dirs aren't present (e.g. reports built from a pruned tree).
+        lat = self.censored_latency or (self.summary.get("latency") if self.summary else None)
         if not isinstance(lat, dict):
             return None
         value = lat.get(key)
         return float(value) if isinstance(value, (int, float)) else None
+
+    @property
+    def latency_median_completed_s(self) -> float | None:
+        """Median over completed tasks only (no timeout censoring) — the
+        clean-when-it-finishes view, shown beside the censored headline."""
+        lat = self.censored_latency or (self.summary.get("latency") if self.summary else None)
+        if not isinstance(lat, dict):
+            return None
+        v = lat.get("agent_seconds_median_completed")
+        return float(v) if isinstance(v, (int, float)) else None
 
     @property
     def latency_median_s(self) -> float | None:
@@ -331,6 +350,32 @@ class RunRecord:
         return self.is_smoke or "probe" in suffix or "poc" in suffix
 
 
+def _censored_latency(durations: list[float], deadlines: list[float]) -> dict | None:
+    """Percentiles over completed-task durations with agent timeouts ranked in
+    at their deadline (right-censored). Timeouts are the largest values, so the
+    median stays a real completion while reflecting the slow mass; the exact
+    deadline barely moves it (unless >50% time out). Returns None without
+    timing data. Keeps a completed-only median for the clean view."""
+    if not durations:
+        return None
+    completed = sorted(durations)
+    censored = sorted(durations + list(deadlines))
+
+    def pct(values: list[float], p: float) -> float:
+        return values[min(len(values) - 1, int(len(values) * p))]
+
+    return {
+        "agent_seconds_mean": round(statistics.mean(completed), 2),
+        "agent_seconds_median": round(statistics.median(censored), 2),
+        "agent_seconds_p90": round(pct(censored, 0.90), 2),
+        "agent_seconds_p95": round(pct(censored, 0.95), 2),
+        "agent_seconds_max": round(censored[-1], 2),
+        "agent_seconds_median_completed": round(statistics.median(completed), 2),
+        "timeouts_censored": len(deadlines),
+        "n": len(completed),
+    }
+
+
 def discover_runs(runs_dir: Path) -> list[RunRecord]:
     records: list[RunRecord] = []
     if not runs_dir.is_dir():
@@ -353,16 +398,34 @@ def discover_runs(runs_dir: Path) -> list[RunRecord]:
                 record.started_tasks = len(task_dirs)
                 completed = 0
                 score_sum = 0.0
+                durations: list[float] = []
+                deadlines: list[float] = []
                 for item in task_dirs:
                     result = read_json(item / "result.json") if (item / "result.json").exists() else None
                     if result is not None:
                         completed += 1
                         score_sum += float(result.get("score", 0.0))
+                        timing = read_json(
+                            item / "attempts" / f"{int(result.get('attempt_number', 1)):06d}" / "agent" / "timing.json"
+                        ) if isinstance(result, dict) else None
+                        dur = timing.get("agent_duration_s") if isinstance(timing, dict) else None
+                        if isinstance(dur, (int, float)):
+                            durations.append(float(dur))
+                        continue
+                    # agent timeout (not a provider/validation error) → censor at
+                    # the deadline parsed from its message ("exceeded 1200s ...").
+                    err = read_json(item / "error.json") if (item / "error.json").exists() else None
+                    if isinstance(err, dict) and err.get("type") == "TaskTimeoutError":
+                        msg = str(err.get("message", ""))
+                        m = re.search(r"agent attempt exceeded (\d+(?:\.\d+)?)s", msg)
+                        if m:
+                            deadlines.append(float(m.group(1)))
                 record.completed_tasks_seen = completed
                 record.live_score_sum = score_sum
                 record.errored_tasks_seen = sum(
                     1 for item in task_dirs if (item / "error.json").exists() and not (item / "result.json").exists()
                 )
+                record.censored_latency = _censored_latency(durations, deadlines)
             if record.summary:
                 record.metrics_zero = dict(record.summary.get("failed_as_zero", {}).get("metrics", {}))
                 record.metrics_excl = dict(record.summary.get("failed_excluded", {}).get("metrics", {}))
@@ -1795,6 +1858,11 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
                 parts.append(f"p95 {p95:.0f}")
             if mx is not None:
                 parts.append(f"max {mx:.0f}s")
+            # when timeouts pushed the censored median above the completed-only
+            # one, show the clean figure so the censoring is transparent.
+            med_done = record.latency_median_completed_s
+            if med_done is not None and abs(med_done - med) >= 1:
+                parts.append(f"{med_done:.0f}s completed-only")
             tail_label = " · ".join(parts)
             to_label = f'<span class="lat-timeout">{to} timeout{"s" if to != 1 else ""}</span>' if to else ""
             bar_v = p95 if p95 is not None else med
@@ -1808,7 +1876,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
         lat_body = render_banded_matrix(systems, suites, canonical, lat_cell, lat_winners)
         latency_html = f"""<div class="section matrix">
   <div class="head"><h3>Latency matrix — agent seconds, system × suite</h3>
-  <span class="hint">Per-task agent wall-clock (search loop + generation; excludes grading and retry waits), grouped by surface band. Headline is the <b>median</b>; subline gives the tail (p90 · p95 · max) and unfinished tasks (timeouts). The boxed cell is the fastest engine in that surface×suite. Bar scales to the worst p95. Concurrency inflates wall-clock — read as a relative signal, not an SLA.</span></div>
+  <span class="hint">Per-task agent wall-clock (search loop + generation; excludes grading and retry waits), grouped by surface band. Headline <b>median</b> is timeout-censored: tasks that hit the wall-clock deadline are ranked into the percentiles at the deadline (not dropped), so an engine can't look fast by abandoning hard queries — the subline adds the completed-only median where they differ. Subline also gives the tail (p90 · p95 · max) and unfinished tasks. The boxed cell is the fastest engine in that surface×suite. Bar scales to the worst p95. Concurrency inflates wall-clock — read as a relative signal, not an SLA.</span></div>
   {matrix_legend_html()}
   <table><thead><tr><th class="first">System</th>{header_cells_l}</tr></thead>
   <tbody>{lat_body}</tbody></table>
