@@ -1616,25 +1616,6 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
   <div class="row2">per suite: {esc(suite_bits)} — partial scales are previews; confidence intervals reflect the current sample, not the full bench</div>
 </div>"""
 
-    # ---- banner ----
-    headline_bits = []
-    for suite in suites:
-        best = best_by_suite.get(suite)
-        if best is not None:
-            qualifier = "leads" if best_is_significant.get(suite) else "leads (within noise)"
-            headline_bits.append(f"{suite}: {esc(best.engine)} {qualifier} at {fmt_score(best.score_zero)}")
-    if incomplete:
-        banner_cls = "warn"
-        banner_title = f"{len(incomplete)} run{'s' if len(incomplete) != 1 else ''} incomplete; scores below treat failed tasks as zero"
-        banner_body = (
-            "Partial and in-progress runs are flagged per row. Re-running the identical command resumes a run in place. "
-            + ("Leaders so far — " + "; ".join(headline_bits) + "." if headline_bits else "")
-        )
-    else:
-        banner_cls = "pos"
-        banner_title = "All discovered runs complete"
-        banner_body = ("Engine leaders — " + "; ".join(headline_bits) + "." if headline_bits else "No scored runs found.")
-
     # ---- hero stats ----
     stats_html = f"""
 <div class="statgrid">
@@ -2002,7 +1983,6 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
 </div>
 {progress_html}
 {note_banner}
-<div class="banner {banner_cls}"><div><h2>{esc(banner_title)}</h2><p>{banner_body}</p></div></div>
 <div class="headgrid">
   <div>
     <div class="eyebrow">Search evals</div>
