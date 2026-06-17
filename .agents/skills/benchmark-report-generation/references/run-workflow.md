@@ -32,7 +32,7 @@ uv run python scripts/benchmark_report.py plan
 
 Checkpoint questions for the user:
 - Which systems? Default engine comparison: the
-  `openrouter-web-search-gpt-5-5-*` family. Baseline: `openrouter-routed`
+  `*-glm-5-1-*` / `*-nemotron-3-ultra-*` ladders. Baseline: `openrouter-routed`
   (no search). Keep the OpenRouter `perplexity` server-tool engine visually
   separate from Perplexity Sonar/model-native search claims.
 - Which suite first? `browsecomp` is the usual headline;

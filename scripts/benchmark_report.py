@@ -469,7 +469,7 @@ def fmt_score(value: float | None) -> str:
 def cmd_plan(args: argparse.Namespace) -> int:
     systems = load_system_names(args.config)
     engine_systems = [name for name in systems if name.startswith("openrouter-web-search-")]
-    primary = args.system or (engine_systems[0] if engine_systems else "openrouter-web-search-gpt-5-5-exa")
+    primary = args.system or (engine_systems[0] if engine_systems else "openrouter-web-search-3call-glm-5-1-exa")
     print(c("OpenRouter Search Evals — recommended run sequence", "bold", "grape"))
     print()
     print(c("Phase 0 — preflight (no paid calls)", "bold"))

@@ -28,9 +28,10 @@ cells.** ~100 tasks/suite (browsecomp 8% / hle 5% / dsqa 11% / widesearch 50%).
 plugin→1call→3call isolates query quality then search depth; 25call is the
 ceiling.
 
-**Phased (Option C):** the cheap surfaces — plugin + 1-call + 3-call (36 of 48
-cells) — run first (`benchmarks/glm-ladder-C.toml`); the 25-call rung extends
-in place later (same `glm-v1` suffix, nested — fills the same report).
+**Phasing (as run):** the cheap surfaces (plugin + 1-call + 3-call, 36 of 48
+cells) ran first, then the 25-call rung extended the same `glm-v1` run in place
+(nested, same report). The full ladder is `benchmarks/glm-ladder.toml`; the
+phased subset specs have been removed now that the run is complete.
 
 **Excluded, deliberately:**
 - **firecrawl** — BYOK key unconfigured/unreliable (0-citation cells); revisit

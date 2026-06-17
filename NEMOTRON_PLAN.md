@@ -26,9 +26,10 @@ endpoint 404s (providers gated behind data-privacy settings).
 × 4 suites (browsecomp, hle, dsqa, widesearch). **12 systems × 4 suites = 48
 cells.** ~100 tasks/suite.
 
-**Phased (Option C):** plugin + 1-call + 3-call (36 of 48 cells) run first
-(`benchmarks/nemotron-ladder-C.toml`); 25-call extends in place later (same
-`nemotron-v1` suffix, nested).
+**Phasing (as run):** plugin + 1-call + 3-call (36 of 48 cells) ran first, then
+the 25-call rung extended the same `nemotron-v1` run in place (nested). The full
+ladder is `benchmarks/nemotron-ladder.toml`; the phased subset specs have been
+removed now that the run is complete.
 
 **Excluded, deliberately:** firecrawl (BYOK key unconfigured); native (plugin
 400s for non-OpenAI models; server-tool native ignores caps). Same as GLM_PLAN.

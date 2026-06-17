@@ -19,7 +19,7 @@ answering, and is **additive** — almost nothing from V1.x needs re-running.
 | **Cost tracks search volume**; native ~5x a 3-call engine, ~1.5-2x a 25-call engine | nano cost ratios; native self-runs 8-26 searches |
 | **Latency tails diverge by engine**: perplexity tail >> exa | glm-5.1 browsecomp: perplexity p95 ~700s + 9 timeouts vs exa p95 ~550s + 2 |
 
-V1.x reports: `reports/nano-v1/` (surface ladder), `reports/glm51-headtohead/`.
+V1.x report: `reports/nano-v1/` (the nano surface ladder).
 
 ## 1. Standing decisions (locked)
 
@@ -44,6 +44,11 @@ V1.x reports: `reports/nano-v1/` (surface ladder), `reports/glm51-headtohead/`.
   quality result.
 
 ## 2. The web_fetch capability (NEW in V2)
+
+> **Note:** the fetch-lane spec files referenced below (`v2-fetch-*.toml`,
+> `v2-thinfetch-*`, `v2-focusedfetch-*`) were removed from `benchmarks/` after
+> this finding deferred the lanes — the matrices remain in `systems.toml` and
+> the specs can be regenerated from these designs if the blockers clear.
 
 V1.x ran **search-only** (no `openrouter:web_fetch`). BrowseComp is built for
 persistent browsing + reading full pages, so search-only handicaps it — our
@@ -140,24 +145,29 @@ route). flash-class (gemini-2.5-flash) floors out on browsecomp.
 
 ## 4. The lanes
 
-**V2 deliverable (DONE / shippable now):**
+**V2 deliverable (DONE / shipped):**
 
-1. **Surface ladder** (nano): plugin → 1-call → 3-call → 25-call. Methodology
-   backbone — separates query-quality (plugin vs 1-call) from search-depth
-   (1→3→25). `reports/nano-v1/` & `reports/latest/`.
-2. **Engine comparison, search-only** (nano + glm-5.1, 25-call): exa/parallel/
-   perplexity. Headline result — perplexity ≥ exa > parallel; budget is the
-   dominant lever; native wins only by searching uncapped.
-3. **Cost + latency** as first-class axes: price/latency matrices (median/p90/
-   p95/max + timeouts), side-by-side below the leaderboards.
-4. **glm-5.1 head-to-head** (`reports/glm51-headtohead/`): cheap flagship-tier,
-   strong + ~5-7x cheaper than gpt-5.5, but latency-bound.
+1. **Two full search-surface ladders** — glm-5.1 and nemotron-3-ultra, each
+   plugin → 1-call → 3-call → 25-call × exa/parallel/perplexity × 4 suites
+   (48 cells, ~100 tasks/suite). Specs `benchmarks/glm-ladder.toml` /
+   `nemotron-ladder.toml`; results in `GLM_PLAN.md` / `NEMOTRON_PLAN.md`;
+   reports `reports/glm-v1/` (= `reports/latest/`) & `reports/nemotron-v1/`.
+2. **nano pathfinder** (`reports/nano-v1/`, `benchmarks/nano-calibration.toml`):
+   the original methodology backbone that established the ladder shape.
+3. **Headline findings:** server-tool > plugin, monotonic with budget; budget
+   is the dominant lever (not engine); perplexity ≥ exa > parallel at 25-call;
+   glm-5.1 beats nemotron at every budget; widesearch inverts (broad plugin
+   search > one narrow query). See GLM_PLAN/NEMOTRON_PLAN for the measured grids.
+4. **Cost + latency** as first-class axes: full-width price ($/task) and latency
+   (median/p90/p95/max + timeout-censored) matrices under the score matrix,
+   each grouped into the same surface bands with per-surface winners.
 
 **Deferred (see §2 finding — fetch not viable as designed):**
 
-- **Fetch lanes** (`v2-fetch-controlled.toml` / `v2-fetch-fullstack.toml`):
-  models don't invoke fetch + fetch is unobservable. Matrices/harness retained;
-  blocked on OpenRouter surfacing fetch usage AND a fetch-inducing config.
+- **Fetch lanes**: models don't invoke fetch + fetch is unobservable via the
+  API. The matrices remain in `systems.toml`; blocked on OpenRouter surfacing
+  fetch usage AND a fetch-inducing config. Spec files were removed (regenerable
+  from the §2/§6 designs).
 - **gpt-5.5 flagship anchor**: only a thin anchor lane, not a full matrix —
   deferred unless a flagship cross-check is needed.
 

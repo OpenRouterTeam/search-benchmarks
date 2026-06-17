@@ -14,7 +14,7 @@ description: >-
 
 This repository evaluates a matrix of **system × suite**: a system is one
 model/search setup from `systems.toml` (e.g.
-`openrouter-web-search-gpt-5-5-exa`), a suite is one benchmark dataset
+`openrouter-web-search-3call-glm-5-1-exa`), a suite is one benchmark dataset
 (`browsecomp`, `hle`, `dsqa`, `widesearch`). Runs are resumable artifact
 directories under `runs/`; `summary.json` is the headline result. This
 skill paces the paid runs in phases and renders the artifacts into one

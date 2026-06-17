@@ -16,7 +16,7 @@ description: >-
 
 This repository evaluates a matrix of **system × suite**: a system is one
 model/search setup from `systems.toml` (e.g.
-`openrouter-web-search-gpt-5-5-exa`), a suite is one benchmark dataset
+`openrouter-web-search-3call-glm-5-1-exa`), a suite is one benchmark dataset
 (`browsecomp`, `hle`, `dsqa`, `widesearch`). Every run writes a resumable
 artifact directory under `runs/`, and `summary.json` in that directory is the
 headline result. This skill turns those artifacts into a single
@@ -69,17 +69,17 @@ uv run python -m search_evals download-datasets
 uv run python -m search_evals list
 ```
 
-Confirm the systems the user wants. The default engine-comparison set is the
-`openrouter-web-search-gpt-5-5-*` rows (auto, exa, firecrawl, native,
-parallel, perplexity) plus baseline `openrouter-routed` (no search). The
-OpenRouter server-tool `perplexity` engine is not Perplexity Sonar; report it
-as an OpenRouter search-engine lane.
+Confirm the systems the user wants. A typical engine-comparison set is one
+model at one surface across the engines, e.g. the `*-3call-glm-5-1-*` rows
+(exa, parallel, perplexity). The OpenRouter server-tool `perplexity` engine is
+not Perplexity Sonar; report it as an OpenRouter search-engine lane. Run
+`uv run python -m search_evals list` for the configured systems.
 
 ### Phase 1 — smoke checkpoint (~5 tasks, one system)
 
 ```bash
 uv run python -m search_evals run \
-  --system openrouter-web-search-gpt-5-5-exa \
+  --system openrouter-web-search-3call-glm-5-1-exa \
   --suite browsecomp --limit 5 --concurrency 5 --run-suffix smoke
 ```
 
@@ -93,9 +93,9 @@ Drop `--limit`. Run every system of interest against ONE suite first
 (`--run-suffix engine-comparison` keeps the family together):
 
 ```bash
-for system in openrouter-web-search-gpt-5-5-auto openrouter-web-search-gpt-5-5-exa \
-  openrouter-web-search-gpt-5-5-firecrawl openrouter-web-search-gpt-5-5-parallel \
-  openrouter-web-search-gpt-5-5-perplexity; do
+for system in openrouter-web-search-3call-glm-5-1-exa \
+  openrouter-web-search-3call-glm-5-1-parallel \
+  openrouter-web-search-3call-glm-5-1-perplexity; do
   uv run python -m search_evals run --system "$system" \
     --suite browsecomp --concurrency 10 --run-suffix engine-comparison
 done
