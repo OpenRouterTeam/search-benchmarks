@@ -1,0 +1,79 @@
+{
+  "completed_tasks": 30,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 30,
+        "currency": "USD",
+        "known_cost_usd": 0.271134,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.271134,
+        "usage": {
+          "cached_input_tokens": 35328,
+          "input_tokens": 248189,
+          "output_tokens": 182284,
+          "reasoning_tokens": 150704,
+          "total_tokens": 430473
+        },
+        "usd": {
+          "openrouter_total_cost": 0.271134
+        }
+      },
+      "grader": {
+        "attempts": 30,
+        "currency": "USD",
+        "known_cost_usd": 0.587984,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.587984,
+        "usage": {
+          "cached_input_tokens": 5504,
+          "input_tokens": 80868,
+          "output_tokens": 54313,
+          "reasoning_tokens": 0,
+          "total_tokens": 135181
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 0.587984
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 0.859118,
+    "total_cost_usd": 0.859118
+  },
+  "failed_as_zero": {
+    "metrics": {
+      "f1_by_item": 0.2679062504644506,
+      "f1_by_row": 0.04556870887846047,
+      "precision_by_item": 0.39708123525183964,
+      "precision_by_row": 0.08699185546465041,
+      "recall_by_item": 0.23974093568233146,
+      "recall_by_row": 0.03643229043796194,
+      "success_rate": 0.0
+    },
+    "score": 0.26790625046445066,
+    "score_ci95": {
+      "high": 0.445774,
+      "low": 0.142732
+    }
+  },
+  "failed_excluded": {
+    "metrics": {
+      "f1_by_item": 0.2679062504644506,
+      "f1_by_row": 0.04556870887846047,
+      "precision_by_item": 0.39708123525183964,
+      "precision_by_row": 0.08699185546465041,
+      "recall_by_item": 0.23974093568233146,
+      "recall_by_row": 0.03643229043796194,
+      "success_rate": 0.0
+    },
+    "score": 0.26790625046445066
+  },
+  "primary_metric": "f1_by_item",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-web-search-gpt-5-4-nano-firecrawl-widesearch-nano-v1-scale-seed0-a3aed3a52e28",
+  "selected_tasks": 30,
+  "suite": "widesearch",
+  "system": "openrouter-web-search-gpt-5-4-nano-firecrawl",
+  "total_correct": 0,
+  "total_failed": 0
+}

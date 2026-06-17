@@ -1,0 +1,71 @@
+{
+  "completed_tasks": 100,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 100,
+        "currency": "USD",
+        "known_cost_usd": 5.659824,
+        "missing_cost_count": 0,
+        "total_cost_usd": 5.659824,
+        "usage": {
+          "cached_input_tokens": 0,
+          "input_tokens": 872229,
+          "output_tokens": 1287913,
+          "reasoning_tokens": 926179,
+          "total_tokens": 2160142
+        },
+        "usd": {
+          "openrouter_total_cost": 5.659824
+        }
+      },
+      "grader": {
+        "attempts": 100,
+        "currency": "USD",
+        "known_cost_usd": 0.86495,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.86495,
+        "usage": {
+          "cached_input_tokens": 1024,
+          "input_tokens": 389583,
+          "output_tokens": 10915,
+          "reasoning_tokens": 0,
+          "total_tokens": 400498
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 0.86495
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 6.524774,
+    "total_cost_usd": 6.524774
+  },
+  "failed_as_zero": {
+    "metrics": {},
+    "score": 0.22,
+    "score_ci95": {
+      "high": 0.310705,
+      "low": 0.150012
+    }
+  },
+  "failed_excluded": {
+    "metrics": {},
+    "score": 0.22
+  },
+  "latency": {
+    "agent_seconds_max": 756.17,
+    "agent_seconds_mean": 97.85,
+    "agent_seconds_median": 36.1,
+    "agent_seconds_p90": 331.33,
+    "agent_seconds_p95": 560.14,
+    "n": 100
+  },
+  "primary_metric": "score",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-plugin-nemotron-3-ultra-exa-hle-nemotron-v1-scale-seed0-dc6806edd101",
+  "selected_tasks": 100,
+  "suite": "hle",
+  "system": "openrouter-plugin-nemotron-3-ultra-exa",
+  "total_correct": 22,
+  "total_failed": 0
+}

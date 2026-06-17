@@ -1,0 +1,87 @@
+{
+  "completed_tasks": 85,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 149,
+        "currency": "USD",
+        "known_cost_usd": 7.068663,
+        "missing_cost_count": 0,
+        "total_cost_usd": 7.068663,
+        "usage": {
+          "cached_input_tokens": 0,
+          "input_tokens": 4244553,
+          "output_tokens": 1002029,
+          "reasoning_tokens": 575658,
+          "total_tokens": 5246582
+        },
+        "usd": {
+          "openrouter_total_cost": 7.068663
+        }
+      },
+      "grader": {
+        "attempts": 85,
+        "currency": "USD",
+        "known_cost_usd": 0.774394,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.774394,
+        "usage": {
+          "cached_input_tokens": 0,
+          "input_tokens": 112133,
+          "output_tokens": 68766,
+          "reasoning_tokens": 0,
+          "total_tokens": 180899
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 0.774394
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 7.843057,
+    "total_cost_usd": 7.843057
+  },
+  "failed_as_zero": {
+    "metrics": {
+      "f1_by_item": 0.24183073142286837,
+      "f1_by_row": 0.13450672664322041,
+      "precision_by_item": 0.30747066427567443,
+      "precision_by_row": 0.1687154494293241,
+      "recall_by_item": 0.223273936655719,
+      "recall_by_row": 0.12518828905514273,
+      "success_rate": 0.01
+    },
+    "score": 0.24183073142286843,
+    "score_ci95": {
+      "high": 0.334292,
+      "low": 0.168471
+    }
+  },
+  "failed_excluded": {
+    "metrics": {
+      "f1_by_item": 0.28450674285043337,
+      "f1_by_row": 0.15824320781555343,
+      "precision_by_item": 0.3617301932654993,
+      "precision_by_row": 0.19848876403449894,
+      "recall_by_item": 0.26267521959496354,
+      "recall_by_row": 0.1472803400648738,
+      "success_rate": 0.011764705882352941
+    },
+    "score": 0.2845067428504335
+  },
+  "latency": {
+    "agent_seconds_max": 593.56,
+    "agent_seconds_mean": 91.14,
+    "agent_seconds_median": 75.05,
+    "agent_seconds_p90": 134.43,
+    "agent_seconds_p95": 156.82,
+    "n": 85
+  },
+  "primary_metric": "f1_by_item",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-web-search-1call-nemotron-3-ultra-exa-widesearch-nemotron-v1-scale-seed0-a9df98639de5",
+  "selected_tasks": 100,
+  "suite": "widesearch",
+  "system": "openrouter-web-search-1call-nemotron-3-ultra-exa",
+  "total_correct": 1,
+  "total_failed": 15
+}

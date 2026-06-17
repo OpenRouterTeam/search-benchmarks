@@ -1,0 +1,63 @@
+{
+  "completed_tasks": 324,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 324,
+        "currency": "USD",
+        "known_cost_usd": 5.942737,
+        "missing_cost_count": 0,
+        "total_cost_usd": 5.942737,
+        "usage": {
+          "cached_input_tokens": 1256960,
+          "input_tokens": 7522436,
+          "output_tokens": 3731602,
+          "reasoning_tokens": 3343403,
+          "total_tokens": 11254038
+        },
+        "usd": {
+          "openrouter_total_cost": 5.942737
+        }
+      },
+      "grader": {
+        "attempts": 324,
+        "currency": "USD",
+        "known_cost_usd": 1.257796,
+        "missing_cost_count": 0,
+        "total_cost_usd": 1.257796,
+        "usage": {
+          "cached_input_tokens": 24576,
+          "input_tokens": 491214,
+          "output_tokens": 39029,
+          "reasoning_tokens": 0,
+          "total_tokens": 530243
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 1.257796
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 7.200533,
+    "total_cost_usd": 7.200533
+  },
+  "failed_as_zero": {
+    "metrics": {},
+    "score": 0.2191358024691358,
+    "score_ci95": {
+      "high": 0.267326,
+      "low": 0.177528
+    }
+  },
+  "failed_excluded": {
+    "metrics": {},
+    "score": 0.2191358024691358
+  },
+  "primary_metric": "score",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-web-search-gpt-5-4-nano-firecrawl-hle-nano-v1-scale-seed0-65aef958978e",
+  "selected_tasks": 324,
+  "suite": "hle",
+  "system": "openrouter-web-search-gpt-5-4-nano-firecrawl",
+  "total_correct": 71,
+  "total_failed": 0
+}

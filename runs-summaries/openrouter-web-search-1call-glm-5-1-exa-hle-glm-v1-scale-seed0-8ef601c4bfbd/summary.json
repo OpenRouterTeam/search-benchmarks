@@ -1,0 +1,71 @@
+{
+  "completed_tasks": 93,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 117,
+        "currency": "USD",
+        "known_cost_usd": 17.955308,
+        "missing_cost_count": 0,
+        "total_cost_usd": 17.955308,
+        "usage": {
+          "cached_input_tokens": 122880,
+          "input_tokens": 7508374,
+          "output_tokens": 2697769,
+          "reasoning_tokens": 2603801,
+          "total_tokens": 10206143
+        },
+        "usd": {
+          "openrouter_total_cost": 17.955308
+        }
+      },
+      "grader": {
+        "attempts": 93,
+        "currency": "USD",
+        "known_cost_usd": 0.301676,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.301676,
+        "usage": {
+          "cached_input_tokens": 1024,
+          "input_tokens": 113214,
+          "output_tokens": 9598,
+          "reasoning_tokens": 0,
+          "total_tokens": 122812
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 0.301676
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 18.256984,
+    "total_cost_usd": 18.256984
+  },
+  "failed_as_zero": {
+    "metrics": {},
+    "score": 0.34,
+    "score_ci95": {
+      "high": 0.437225,
+      "low": 0.254614
+    }
+  },
+  "failed_excluded": {
+    "metrics": {},
+    "score": 0.3655913978494624
+  },
+  "latency": {
+    "agent_seconds_max": 1174.45,
+    "agent_seconds_mean": 431.23,
+    "agent_seconds_median": 347.24,
+    "agent_seconds_p90": 964.08,
+    "agent_seconds_p95": 1031.84,
+    "n": 93
+  },
+  "primary_metric": "score",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-web-search-1call-glm-5-1-exa-hle-glm-v1-scale-seed0-8ef601c4bfbd",
+  "selected_tasks": 100,
+  "suite": "hle",
+  "system": "openrouter-web-search-1call-glm-5-1-exa",
+  "total_correct": 34,
+  "total_failed": 7
+}
