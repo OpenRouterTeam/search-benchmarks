@@ -194,8 +194,8 @@ white-space:pre-wrap;word-break:break-all}
     raw levels.</b></div></div>
   </div>
   <div class="metacard">
-    <div class="row"><span class="k">Generated</span><span class="v">2026-06-16 19:56 EDT</span></div>
-    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">be32d38</span></span></div>
+    <div class="row"><span class="k">Generated</span><span class="v">2026-06-17 14:54 EDT</span></div>
+    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">18fc10d</span></span></div>
     <div class="row"><span class="k">Runs dir</span><span class="v">runs/</span></div>
     <div class="row"><span class="k">Grader</span><span class="v">openai/gpt-4.1 via openrouter</span></div>
     <div class="row"><span class="k">Suites</span><span class="v">browsecomp, hle, dsqa, widesearch</span></div>
@@ -861,14 +861,14 @@ white-space:pre-wrap;word-break:break-all}
     <div class="cell"><div class="k">Scoring</div><div class="v">Headline numbers use <b>failed-as-zero</b>: tasks that exhausted retries count as 0. The failed-excluded column averages only graded tasks; a large gap between the two signals harness reliability problems, not search quality. Each score carries a 95% Wilson interval; the green <b>Best</b> badge requires the leader's interval to clear every runner-up's, otherwise the row is marked <b>Leading</b> (within noise).</div></div>
     <div class="cell"><div class="k">Grading</div><div class="v">Grader: <span class="chip">openai/gpt-4.1 via openrouter</span>, matching upstream's gpt-4.1 grading for comparability. Override with <span class="chip">SEARCH_EVALS_GRADER_MODEL</span>.</div></div>
     <div class="cell"><div class="k">Cost</div><div class="v">Provider-reported request cost where available, split by agent vs grader stage. "Known" totals exclude attempts whose providers did not report cost.</div></div>
-    <div class="cell"><div class="k">Surfaces</div><div class="v">Each engine is run across the search-call ladder: <b>plugin</b> (one pre-inference search on the verbatim user message, results injected before generation) · <b>1call</b> (one model-authored search) · <b>3call</b> · <b>25call</b> (the server-tool hard cap — best effort). plugin-vs-1call isolates query quality at a fixed one search; 1call→3call→25call isolates search depth. Per-result content is each engine's native size (uncapped): exa ~2k chars, parallel ~0.9k, perplexity ~0.5k.</div></div>
+    <div class="cell"><div class="k">Surfaces</div><div class="v">Each engine is run across the search-call ladder: <b>plugin</b> (one pre-inference search on the verbatim user message, results injected before generation) · <b>1call</b> (one model-authored search) · <b>3call</b> · <b>25call</b> (the server-tool hard cap — best effort). plugin-vs-1call isolates query quality at a fixed one search; 1call→3call→25call isolates search depth. Per-result content is each engine's native size (uncapped, measured median): exa ~1.9k chars, parallel ~0.9k, perplexity ~0.5k.</div></div>
     <div class="cell"><div class="k">Harness scope — search, no fetch</div><div class="v">Not comparable to full multi-tool agent benchmarks: those agents add model-driven page <b>fetching</b> + code tools. Here the model searches and reads capped excerpts but does <b>not</b> fetch full URLs — <span class="chip">web_fetch</span> is off, measured neutral-when-capped and unobservable via the API (it executes but reports no usage). Scores therefore sit below fetch-enabled agents by design; read engine and surface deltas, not absolute levels. <span class="chip">firecrawl</span> is omitted (BYOK key not configured → broken retrieval), and <span class="chip">native</span> is omitted (plugin-native 400s for non-OpenAI models, and server-tool native ignores the call/char caps — not a like-for-like backend).</div></div>
     <div class="cell"><div class="k">Comparability</div><div class="v">Rows in one suite leaderboard share the same dataset fingerprint and suite instructions (enforced by the config hash). Smoke/probe runs are excluded. All shown rows are pinned single-engine server-tool or plugin lanes at a fixed reasoning model, so deltas isolate the search backend and the surface. Plugin-route rows inherit OpenRouter's default <span class="chip">search_prompt</span> (the instruction attaching results to the message), an uncontrolled variable of that surface — read plugin as a product, not a like-for-like backend vs the server-tool rows.</div></div>
   </div>
 </div>
 <div class="footer">
   <span>Generated locally by scripts/benchmark_report.py.</span>
-  <span>search_evals · be32d38</span>
+  <span>search_evals · 18fc10d</span>
 </div>
 </div>
 <script>

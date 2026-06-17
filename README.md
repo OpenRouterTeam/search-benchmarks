@@ -13,7 +13,8 @@
 > frontier **vendor agent products** (multi-step search + model-driven page fetching + code
 > tools, up to 100 calls/task). This bench isolates **OpenRouter search surfaces** under a
 > fixed, constrained harness. The engines DO extract content from real pages server-side
-> (measured content per result: exa ~2.3k chars · parallel ~0.9k · perplexity ~70 median), but
+> (measured median content per result: exa ~1.9k chars · parallel ~0.9k · perplexity ~0.5k — and
+> more text doesn't win: exa returns ~4× perplexity's and still trails it on browsecomp), but
 > the **model can never fetch a URL in full** — OpenRouter's separate `openrouter:web_fetch`
 > server tool is off in every lane (measured neutral-when-capped and unobservable via the API;
 > see `BENCHMARK_PLAN_V2.md` §2) — and there are no code tools. So absolute scores sit below

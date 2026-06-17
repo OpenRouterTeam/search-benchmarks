@@ -44,8 +44,9 @@ phased subset specs have been removed now that the run is complete.
 
 - `max_tool_calls`: plugin n/a · 1-call 1 · 3-call 3 · 25-call 25 (hard cap).
 - `max_characters`: **unset** — each engine returns its native content shape
-  (measured: exa ~2000 chars/cite, parallel ~830, perplexity ~480; a 2000 cap
-  would only clip exa, so unset is the honest comparison).
+  (measured median chars/cite over ~250k citations: exa ~1900, parallel ~920,
+  perplexity ~485; a 2000 cap would only clip exa, so unset is the honest
+  comparison).
 - provider pinning: `[baseten, parasail, deepinfra, atlascloud, chutes]`,
   fallbacks within that fast set (glm-5.1 lists slow endpoints that blow the
   timeout in the 25-call loop).
