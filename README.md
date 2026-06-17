@@ -13,16 +13,12 @@
 > frontier **vendor agent products** (multi-step search + model-driven page fetching + code
 > tools, up to 100 calls/task). This bench isolates **OpenRouter search surfaces** under a
 > fixed, constrained harness. The engines DO extract content from real pages server-side
-> (measured median content per result: exa ~1.9k chars · parallel ~0.9k · perplexity ~0.5k — and
-> more text doesn't win: exa returns ~4× perplexity's and still trails it on browsecomp), but
+> (measured median content per result: exa ~1.9k chars · parallel ~0.9k · perplexity ~0.5k), but
 > the **model can never fetch a URL in full** — OpenRouter's separate `openrouter:web_fetch`
 > server tool is off in every lane (measured neutral-when-capped and unobservable via the API;
 > see `BENCHMARK_PLAN_V2.md` §2) — and there are no code tools. So absolute scores sit below
 > full multi-tool vendor agents by design. **Read the surface and engine deltas, not the raw
-> levels.** Headline finding: glm-5.1 beats nemotron-3-ultra at every budget (browsecomp
-> 25-call 0.62 vs 0.35; dsqa 0.67 vs 0.52); scores climb monotonically with tool budget on the
-> fact-finding suites; widesearch inverts (a broad plugin search beats one narrow query); and
-> perplexity ≥ exa > parallel at the 25-call ceiling.
+> levels.**
 
 > **Latest benchmark report:** [`reports/latest/benchmark-report.html`](reports/latest/benchmark-report.html)
 > ([full PNG](reports/latest/benchmark-report.png)) — the **glm-5.1 surface ladder** (48 cells,
