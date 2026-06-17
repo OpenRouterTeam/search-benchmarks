@@ -1,0 +1,79 @@
+{
+  "completed_tasks": 30,
+  "cost": {
+    "by_stage": {
+      "agent": {
+        "attempts": 30,
+        "currency": "USD",
+        "known_cost_usd": 7.756675,
+        "missing_cost_count": 0,
+        "total_cost_usd": 7.756675,
+        "usage": {
+          "cached_input_tokens": 5715456,
+          "input_tokens": 16644729,
+          "output_tokens": 489209,
+          "reasoning_tokens": 420992,
+          "total_tokens": 17133938
+        },
+        "usd": {
+          "openrouter_total_cost": 7.756675
+        }
+      },
+      "grader": {
+        "attempts": 30,
+        "currency": "USD",
+        "known_cost_usd": 0.95036,
+        "missing_cost_count": 0,
+        "total_cost_usd": 0.95036,
+        "usage": {
+          "cached_input_tokens": 3328,
+          "input_tokens": 103220,
+          "output_tokens": 93614,
+          "reasoning_tokens": 0,
+          "total_tokens": 196834
+        },
+        "usd": {
+          "openrouter_grader_total_cost": 0.95036
+        }
+      }
+    },
+    "currency": "USD",
+    "known_cost_usd": 8.707035,
+    "total_cost_usd": 8.707035
+  },
+  "failed_as_zero": {
+    "metrics": {
+      "f1_by_item": 0.5958268731630755,
+      "f1_by_row": 0.3692358815724836,
+      "precision_by_item": 0.7217346441112782,
+      "precision_by_row": 0.45285017524466037,
+      "recall_by_item": 0.5583609520076421,
+      "recall_by_row": 0.3428602919114867,
+      "success_rate": 0.06666666666666667
+    },
+    "score": 0.5958268731630755,
+    "score_ci95": {
+      "high": 0.750645,
+      "low": 0.419253
+    }
+  },
+  "failed_excluded": {
+    "metrics": {
+      "f1_by_item": 0.5958268731630755,
+      "f1_by_row": 0.3692358815724836,
+      "precision_by_item": 0.7217346441112782,
+      "precision_by_row": 0.45285017524466037,
+      "recall_by_item": 0.5583609520076421,
+      "recall_by_row": 0.3428602919114867,
+      "success_rate": 0.06666666666666667
+    },
+    "score": 0.5958268731630755
+  },
+  "primary_metric": "f1_by_item",
+  "run_dir": "/Users/ap/.codex/worktrees/2e6c/search_evals/runs/openrouter-web-search-25call-gpt-5-4-nano-perplexity-widesearch-nano-25call-scale-seed0-ea69c6f7c91a",
+  "selected_tasks": 30,
+  "suite": "widesearch",
+  "system": "openrouter-web-search-25call-gpt-5-4-nano-perplexity",
+  "total_correct": 2,
+  "total_failed": 0
+}
