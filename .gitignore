@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 .venv/
 .env
+node_modules/
 build/
 dist/
 .pytest_cache/
@@ -16,3 +17,4 @@ reports/*
 !reports/nemotron-v1/
 !reports/nano-v1/
 _superseded_runs/
+analysis/

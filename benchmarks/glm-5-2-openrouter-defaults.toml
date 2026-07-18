@@ -1,0 +1,26 @@
+# GLM 5.2 Nitro via OpenRouter web-search server tool, using backend defaults.
+# Four lanes: Exa default, Exa with max_characters=4000, Parallel default,
+# Perplexity default. No max_results or max_total_results is sent.
+#
+#   uv run python scripts/benchmark_report.py sweep --spec benchmarks/glm-5-2-openrouter-defaults.toml [--dry-run]
+
+[sweep]
+system = [
+  "openrouter-web-search-25call-defaults-glm-5-2-nitro-exa",
+  "openrouter-web-search-25call-defaults-glm-5-2-nitro-exa-4k",
+  "openrouter-web-search-25call-defaults-glm-5-2-nitro-parallel",
+  "openrouter-web-search-25call-defaults-glm-5-2-nitro-perplexity",
+]
+sample = 100
+sample_seed = 0
+parallel_cells = 2
+concurrency = 5
+task_timeout = 1200
+run_suffix = "glm-5-2-defaults"
+report_bench = ["glm-5-2-defaults"]
+budget_usd = 500
+png = true
+save_latest = false
+cost_per_task = 0.25
+title = "Search Engine Benchmark — GLM 5.2 Nitro via OpenRouter defaults (~100/suite)"
+note = "GLM 5.2 Nitro through OpenRouter server-side web search. Engines: Exa default, Exa 4k max_characters, Parallel default, Perplexity default. 25-call cap; no max_results or max_total_results sent, so OpenRouter/backend defaults determine result count behavior. Uses OPENROUTER_API_KEY only."

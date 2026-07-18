@@ -74,8 +74,8 @@ def _add_openrouter_matrices(systems: dict[str, SystemConfig], matrices_raw: dic
             model_id = require_str(model_raw.get("id"), f"{path}.models[].id")
             model_name = _slug_part(require_str(model_raw.get("name", _slug_model(model_id)), f"{path}.models[].name"))
             model_overrides = {key: item for key, item in model_raw.items() if key not in {"id", "name"}}
-            for engine_name, engine_overrides in engines:
-                system_name = f"{prefix}-{model_name}-{_slug_part(engine_name)}"
+            for engine_name, engine_label, engine_overrides in engines:
+                system_name = f"{prefix}-{model_name}-{_slug_part(engine_label)}"
                 system_raw = {
                     "harness": "openrouter",
                     **defaults,
@@ -87,13 +87,14 @@ def _add_openrouter_matrices(systems: dict[str, SystemConfig], matrices_raw: dic
                 _add_system(systems, system_name, system_raw, f"{path}.{system_name}")
 
 
-def _parse_matrix_engine(value: Any, path: str) -> tuple[str, dict[str, Any]]:
+def _parse_matrix_engine(value: Any, path: str) -> tuple[str, str, dict[str, Any]]:
     if type(value) is str:
-        return value, {}
+        return value, value, {}
     engine_raw = require_dict(value, path)
     name = require_str(engine_raw.get("name", engine_raw.get("search_backend")), f"{path}.name")
-    overrides = {key: item for key, item in engine_raw.items() if key not in {"name", "search_backend"}}
-    return name, overrides
+    label = require_str(engine_raw.get("label", name), f"{path}.label")
+    overrides = {key: item for key, item in engine_raw.items() if key not in {"name", "search_backend", "label"}}
+    return name, label, overrides
 
 
 def _slug_model(model: str) -> str:

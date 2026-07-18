@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Search Engine Benchmark Report</title><style>
+<meta name="report-version" content="0.0.1">
+<title>Search Engine Benchmark — nemotron-3-ultra surface ladder (~100/suite)</title><style>
 :root{--bg:#FCFCFE;--card:#FFFFFF;--border:#E8E8F0;--border-soft:#F1F1F6;--text:#191923;
 --muted:#6A6A7C;--faint:#9C9CAD;--grape:#7624F4;--royal:#035ADE;--pos:#00BF6F;--pos-ink:#00935A;
 --neg:#FF2D55;--warn:#FFAB00;--warn-ink:#9A6700;--track:#EEF1F6;
@@ -22,6 +23,8 @@ a{color:inherit;text-decoration:underline;text-decoration-color:rgba(25,25,35,.3
 .brand svg{color:var(--grape)}
 .topbar .right{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .topbar .dot{width:5px;height:5px;border-radius:50%;background:var(--grape);display:inline-block}
+.reportver{display:inline-flex;align-items:center;border:1px solid var(--border);background:var(--card);
+border-radius:999px;padding:2px 8px;color:#33333F;font-family:var(--mono);font-size:10px;font-weight:650}
 .banner{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border:1px solid;
 border-radius:10px;padding:13px 16px;margin-bottom:22px}
 .banner.warn{background:#FFF9EC;border-color:#F3E3B5}
@@ -152,7 +155,7 @@ white-space:pre-wrap;word-break:break-all}
 <body><div class="page">
 <div class="topbar">
   <div class="brand"><svg viewBox="0 0 202 171" width="22" height="19" fill="currentColor" aria-hidden="true"><path d="M67.4302 35.0399C104.198 9.01612 134.678 17.2966 165.827 17.2967v35.2998c-40.251 0-53.171-6.3191-78.0033 11.2567-24.3152 17.3108-24.9875 17.7979-37.6806 24.8974l-.001-.001c-7.8316 4.4521-18.1058 7.8405-26.3672 10.0567-7.9255 2.1265-17.0571 3.9905-22.54786 3.9905v-35.3001c-.25785 0 .91072-.0471 3.91992-.6055 2.64553-.4909 5.95014-1.2321 9.48244-2.1796 7.4338-1.9942 14.2777-4.4774 18.1269-6.6817l.0772-.0439.0781-.044 c10.8993-6.0962 10.2335-5.6131 34.4785-22.874l.0205-.0137.0196-.0146Z"/><path d="M200.327 35.1467 140.027 69.9467V.34668l60.3 34.80002Z"/><path d="M.0268892 67.4963c5.4489608 0 14.5454108 1.8198 22.5029108 3.9258 8.0728 2.1365 18.0652 5.3803 25.8643 9.6592l.748.417.0274.0156.0283.0166c12.5125 7.1653 13.118 7.6035 37.4658 24.9375h-.001c24.8062 17.542 37.7342 11.229 77.9632 11.229v35.299c-31.148 0-61.628 8.281-98.396-17.743l-.0195-.013-.0205-.015 c-24.2097-17.236-23.6487-16.829-34.4776-23.029l-.7656-.418c-3.9955-2.103-10.4713-4.384-17.4482-6.231 -3.5381-.936-6.84697-1.667-9.49814-2.151-3.00625-.549-4.20011-.599-3.97363-.599v-35.3Z"/><path d="m199.127 135.047-60.3-34.7v69.5l60.3-34.8Z"/></svg><span>OpenRouter</span></div>
-  <div class="right"><span class="dot"></span>Search evals · benchmark report</div>
+  <div class="right"><span class="reportver">v0.0.1</span><span class="dot"></span>Search evals · benchmark report</div>
 </div>
 
 <div class="benchbar">
@@ -163,11 +166,11 @@ white-space:pre-wrap;word-break:break-all}
   <div class="track"><i style="width:8.49%"></i></div>
   <div class="row2">per suite: browsecomp 8% · hle 5% · dsqa 11% · widesearch 46% — partial scales are previews; confidence intervals reflect the current sample, not the full bench</div>
 </div>
-
+<div class="banner note"><div><h2>About this run</h2><p>nvidia/nemotron-3-ultra across the search-surface ladder (plugin one-shot / 1-call / 3-call / 25-call best-effort) x exa, parallel, perplexity x browsecomp, hle, dsqa, widesearch, ~100 tasks/suite, graded by openai/gpt-4.1. firecrawl omitted (BYOK key unconfigured); native omitted (plugin native unsupported for non-OpenAI models). Search-only: web_fetch deferred (neutral-when-capped + unobservable via the API). Absolute scores sit below full multi-tool vendor agents (search-&gt;fetch + code tools) by design; this isolates the OpenRouter server-tool search surface.</p></div></div>
 <div class="headgrid">
   <div>
     <div class="eyebrow">Search evals</div>
-    <h1>Search Engine Benchmark Report</h1>
+    <h1>Search Engine Benchmark — nemotron-3-ultra surface ladder (~100/suite)</h1>
     <div class="ladder">
       <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div>
         <div class="params"><span class="pp"><b>route</b> plugins:[web]</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>max_chars</b> unset</span><span class="pp"><b>web_fetch</b> off</span></div></div>
@@ -193,8 +196,8 @@ white-space:pre-wrap;word-break:break-all}
     raw levels.</b></div></div>
   </div>
   <div class="metacard">
-    <div class="row"><span class="k">Generated</span><span class="v">2026-06-17 17:00 EDT</span></div>
-    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">4250ec9</span></span></div>
+    <div class="row"><span class="k">Generated</span><span class="v">2026-07-06 22:06 EDT</span></div>
+    <div class="row"><span class="k">Commit</span><span class="v"><span class="chip">5475a77</span></span></div>
     <div class="row"><span class="k">Runs dir</span><span class="v">runs/</span></div>
     <div class="row"><span class="k">Grader</span><span class="v">openai/gpt-4.1 via openrouter</span></div>
     <div class="row"><span class="k">Suites</span><span class="v">browsecomp, hle, dsqa, widesearch</span></div>
@@ -867,7 +870,7 @@ white-space:pre-wrap;word-break:break-all}
 </div>
 <div class="footer">
   <span>Generated locally by scripts/benchmark_report.py.</span>
-  <span>search_evals · 4250ec9</span>
+  <span>search_evals · 5475a77</span>
 </div>
 </div>
 <script>

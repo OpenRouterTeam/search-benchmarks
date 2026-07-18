@@ -27,6 +27,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+DEFAULT_REPORT_VERSION = "0.0.1"
+SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 SUITE_ORDER = ["browsecomp", "hle", "dsqa", "widesearch"]
 SUITE_TASKS = {"browsecomp": 1266, "hle": 2158, "dsqa": 900, "widesearch": 200}
 SUITE_BLURBS = {
@@ -108,7 +110,9 @@ class RunRecord:
 
     @property
     def engine(self) -> str:
-        if self.harness == "openrouter":
+        if self.harness in {"openrouter", "hermes"} or (
+            self.harness == "pi" and self.params.get("web_search") in {"plugin", "server-tool"}
+        ):
             if self.params.get("web_search", "server-tool") == "off":
                 return "no search"
             backend = self.params.get("search_backend") or "auto"
@@ -121,11 +125,13 @@ class RunRecord:
         apples-to-apples. `auto` is a routing policy (it resolves to different
         engines per model/provider and the response carries no marker of which),
         and no-search/agent-api rows are baselines — none compete for Best."""
-        return self.harness == "openrouter" and self.engine not in {"auto", "no search"}
+        if self.harness == "pi" and self.params.get("web_search") not in {"plugin", "server-tool"}:
+            return False
+        return self.harness in {"openrouter", "hermes", "pi"} and self.engine not in {"auto", "no search"}
 
     @property
     def surface(self) -> str:
-        """Search surface for ordering: plugin / 1call / 3call / 25call / agent.
+        """Search surface for ordering: plugin / 1turn / 3turn / 5turn / 25turn / agent.
         Lets the report group rows by engine then walk the surface ladder."""
         p = self.params
         if p.get("web_search") == "plugin":
@@ -136,33 +142,43 @@ class RunRecord:
         return "agent"
 
     # ascending ladder order for the surface column
-    _SURFACE_RANK = {"plugin": 0, "1call": 1, "3call": 2, "25call": 3, "agent": 4}
+    _SURFACE_RANK = {"plugin": 0, "1call": 1, "3call": 2, "5call": 3, "25call": 4, "agent": 5}
 
     @property
     def order_key(self) -> tuple:
         """Sort rows by (surface-ladder, model, engine) so every surface is a
         contiguous band — all plugin rows for all models together, then all
-        1-call, then 3-call, then 25-call. Within a band, group by model then
+        1-turn, then 3-turn, then 5-turn, then 25-turn. Within a band, group by model then
         engine. This makes each surface a visually distinct sub-suite of the
         system×suite test."""
         return (self._SURFACE_RANK.get(self.surface, 9), str(self.model), self.engine, self.system)
 
     @property
     def degraded(self) -> bool:
-        """True when an engine row retrieved essentially nothing — mean
-        citations per task < 0.5 — so its score reflects broken retrieval
-        (the model answering from memory), not engine quality. Currently this
-        flags firecrawl, whose BYOK key is unconfigured so every search errors;
-        the score is shown dimmed rather than dropped so the gap is visible."""
+        """True when an engine row explicitly retrieved essentially nothing.
+
+        Some harnesses expose URL-citation telemetry from the raw provider
+        response; others, notably Hermes with OpenRouter server tools, only
+        expose the final normalized conversation. Missing citation telemetry is
+        unknown, not zero. Only dim rows when citations were recorded and the
+        mean is near zero.
+        """
         if not self.is_engine_row or not self.completed:
             return False
-        return self.search_stats.get("url_citations", 0.0) < 0.5
+        stats = self.search_stats
+        if "url_citations" not in stats:
+            return False
+        return stats["url_citations"] < 0.5
 
     @property
     def short_system(self) -> str:
+        if self.system == "openrouter-web-search-25call-no-totalcap-glm-5-1-exa":
+            return "25call-no-totalcap-20k-glm-5-1-exa"
         # Strip both routing prefixes so plugin and server-tool rows read
         # consistently (e.g. "plugin-glm-5-1-exa", "1call-glm-5-1-exa").
         name = self.system.removeprefix("openrouter-")
+        name = name.removeprefix("hermes-openrouter-")
+        name = name.removeprefix("pi-openrouter-")
         name = name.removeprefix("web-search-")
         # Surface budget that isn't already in the name: a server-tool capped
         # engine row that doesn't carry an Ncall- prefix is the default 3-call
@@ -175,8 +191,8 @@ class RunRecord:
             and self.engine not in {"native", "auto"}
             and self.params.get("max_tool_calls") == 3
         ):
-            return f"3call-{name}"
-        return name
+            name = f"3call-{name}"
+        return surface_display_name(name)
 
     @property
     def selected(self) -> int:
@@ -187,8 +203,24 @@ class RunRecord:
         return int(self.summary.get("completed_tasks", 0)) if self.summary else self.completed_tasks_seen
 
     @property
+    def ungraded(self) -> int:
+        return int(self.summary.get("ungraded_tasks", 0)) if self.summary else 0
+
+    @property
     def failed(self) -> int:
         return int(self.summary.get("total_failed", 0)) if self.summary else self.errored_tasks_seen
+
+    @property
+    def terminal_tasks(self) -> int:
+        """Task slots with a terminal outcome in a summarized run.
+
+        `completed_tasks` is graded results only. Some suites can finish with
+        agent answers that were not graded (for example, grader timeouts) and
+        store them as `ungraded_tasks`; retry-exhausted failures live in
+        `total_failed`. Once a summary exists, those slots are terminal for
+        sweep resume scheduling unless an explicit repair mode reopens them.
+        """
+        return self.completed + self.ungraded + self.failed
 
     @property
     def primary_metric(self) -> str:
@@ -200,7 +232,36 @@ class RunRecord:
         return self.summary is None and self.completed_tasks_seen > 0
 
     @property
+    def provider_error_tasks(self) -> int:
+        """Tasks whose saved Pi/OpenRouter response was a provider error.
+
+        Older Pi harness runs could serialize an OpenRouter 403/quota error as
+        an empty assistant answer, letting the grader/status layer treat it as a
+        normal zero-score completion. Detect those artifacts so the report does
+        not present quota failures as benchmark signal.
+        """
+        count = 0
+        for path in self.path.glob("tasks/*/attempts/*/agent/response.json"):
+            data = read_json(path)
+            messages = data.get("messages") if isinstance(data, dict) else None
+            if not isinstance(messages, list):
+                continue
+            if any(
+                isinstance(message, dict)
+                and (message.get("errorMessage") or message.get("stopReason") == "error")
+                for message in messages
+            ):
+                count += 1
+        return count
+
+    @property
+    def invalid_provider_error_run(self) -> bool:
+        return bool(self.selected and self.provider_error_tasks >= self.selected)
+
+    @property
     def score_zero(self) -> float | None:
+        if self.invalid_provider_error_run:
+            return None
         if not self.summary:
             # Live interim mean over graded tasks (no failed-as-zero penalty
             # yet — failures aren't final until retries exhaust at run end).
@@ -211,6 +272,8 @@ class RunRecord:
 
     @property
     def score_excl(self) -> float | None:
+        if self.invalid_provider_error_run:
+            return None
         if not self.summary:
             if self.completed_tasks_seen:
                 return self.live_score_sum / self.completed_tasks_seen
@@ -321,6 +384,8 @@ class RunRecord:
     def status(self) -> str:
         if self.summary is None:
             return "RUNNING" if self.started_tasks else "EMPTY"
+        if self.invalid_provider_error_run:
+            return "FAILED"
         if self.selected and self.completed == self.selected:
             return "COMPLETE"
         if self.completed:
@@ -530,6 +595,8 @@ SPEC_KEYS = {
     "concurrency": int, "parallel_cells": int, "task_timeout": float,
     "run_suffix": str, "budget_usd": float, "cost_per_task": float,
     "title": str, "note": str, "png": bool, "save_latest": bool,
+    "report_version": str, "version_bump": str, "report_bench": list,
+    "report_system": list,
 }
 
 
@@ -547,6 +614,17 @@ def apply_spec(args: argparse.Namespace, parser_defaults: dict) -> None:
         attr = key.replace("-", "_")
         if getattr(args, attr, None) == parser_defaults.get(attr):
             setattr(args, attr, value)
+
+
+def scale_run_suffix(base_suffix: str | None, sample_seed: int) -> str:
+    """Run suffix used by sampled/percentage scale sweeps.
+
+    The runner appends only the seed, not the sample size, so increasing a
+    same-named sweep extends the existing seeded prefix. Different named sweeps
+    must stay isolated even when they share a seed.
+    """
+    scale_tag = f"scale-seed{sample_seed}"
+    return f"{base_suffix}-{scale_tag}" if base_suffix else scale_tag
 
 
 def cmd_sweep(args: argparse.Namespace) -> int:
@@ -607,28 +685,29 @@ def cmd_sweep(args: argparse.Namespace) -> int:
     # a smaller/equal target, and only the delta is paid.
     scale_progress: dict[tuple[str, str], int] = {}
     spent_before = 0.0
-    scale_tag = f"scale-seed{getattr(args, 'sample_seed', 0)}"
+    scale_tag = scale_run_suffix(getattr(args, "run_suffix", None), getattr(args, "sample_seed", 0))
     for record in records:
         spent_before += record.known_cost or 0.0
         cell_size = cell_tasks(record.suite)
         key = (record.suite, record.system)
         if is_scale_sweep:
-            if record.run_suffix and record.run_suffix.endswith(scale_tag):
+            if record.run_suffix == scale_tag:
                 scale_progress[key] = max(scale_progress.get(key, 0), record.completed)
                 # A scale cell is done when the same-seed run already covers
                 # the target size (nested prefixes: bigger ⊇ smaller).
-                if record.summary and cell_size is not None and record.completed >= cell_size:
+                if record.summary and cell_size is not None and record.terminal_tasks >= cell_size:
                     done.add(key)
-        elif record.summary and record.status == "COMPLETE":
+        elif record.summary:
             if cell_size is None:
-                if not record.is_smoke:
+                if not record.is_smoke and record.selected and record.terminal_tasks >= record.selected:
                     done.add(key)
-            elif record.selected == cell_size:
+            elif record.selected == cell_size and record.terminal_tasks >= cell_size:
                 done.add(key)
 
-    pending = [cell for cell in cells if cell not in done]
+    done_in_matrix = {cell for cell in cells if cell in done}
+    pending = [cell for cell in cells if cell not in done_in_matrix]
     print(c(f"Sweep: {len(cells)} cells ({len(suites)} suites × {len(systems)} systems); "
-            f"{len(done)} already complete, {len(pending)} to run", "bold"))
+            f"{len(done_in_matrix)} already complete, {len(pending)} to run", "bold"))
     for suite, system in cells:
         if (suite, system) in done:
             marker, extra = "done", ""
@@ -970,12 +1049,14 @@ def _checkpoint_report(args: argparse.Namespace, final: bool = False) -> int:
     report_args = argparse.Namespace(
         runs_dir=args.runs_dir, out=out, suite=None,
         title=args.title, png=args.png, note=getattr(args, "note", None),
+        report_version=getattr(args, "report_version", None),
+        version_bump=getattr(args, "version_bump", "patch"),
         save_latest=final and getattr(args, "save_latest", False),
-        system=getattr(args, "system", None),
+        system=getattr(args, "report_system", None) or getattr(args, "system", None),
         exclude=getattr(args, "exclude", None),
         # Checkpoint reports are scoped to this sweep's benchmark so two
         # benches running side-by-side never mix into one matrix.
-        bench=getattr(args, "run_suffix", None),
+        bench=getattr(args, "report_bench", None) or getattr(args, "run_suffix", None),
     )
     return cmd_report(report_args)
 
@@ -1188,6 +1269,7 @@ CSS = """
 --surf-plugin:#6B7280;--surf-plugin-bg:#F6F7F9;
 --surf-1call:#035ADE;--surf-1call-bg:#F0F5FE;
 --surf-3call:#7624F4;--surf-3call-bg:#F6F1FE;
+--surf-5call:#C026D3;--surf-5call-bg:#FDF4FF;
 --surf-25call:#00935A;--surf-25call-bg:#EBF7F1;
 --win-box:rgba(0,147,90,.5);--win-fill:rgba(0,191,111,.07)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1200,6 +1282,8 @@ a{color:inherit;text-decoration:underline;text-decoration-color:rgba(25,25,35,.3
 .brand svg{color:var(--grape)}
 .topbar .right{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .topbar .dot{width:5px;height:5px;border-radius:50%;background:var(--grape);display:inline-block}
+.reportver{display:inline-flex;align-items:center;border:1px solid var(--border);background:var(--card);
+border-radius:999px;padding:2px 8px;color:#33333F;font-family:var(--mono);font-size:10px;font-weight:650}
 .banner{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border:1px solid;
 border-radius:10px;padding:13px 16px;margin-bottom:22px}
 .banner.warn{background:#FFF9EC;border-color:#F3E3B5}
@@ -1277,10 +1361,12 @@ td.bandedge{border-left:3px solid transparent}
 .surf-plugin td.bandedge,tr.surf-plugin .bandlabel{border-left-color:var(--surf-plugin);color:var(--surf-plugin)}
 .surf-1call td.bandedge,tr.surf-1call .bandlabel{border-left-color:var(--surf-1call);color:var(--surf-1call)}
 .surf-3call td.bandedge,tr.surf-3call .bandlabel{border-left-color:var(--surf-3call);color:var(--surf-3call)}
+.surf-5call td.bandedge,tr.surf-5call .bandlabel{border-left-color:var(--surf-5call);color:var(--surf-5call)}
 .surf-25call td.bandedge,tr.surf-25call .bandlabel{border-left-color:var(--surf-25call);color:var(--surf-25call)}
 tr.surf-plugin.surfaceband td{background:var(--surf-plugin-bg)}
 tr.surf-1call.surfaceband td{background:var(--surf-1call-bg)}
 tr.surf-3call.surfaceband td{background:var(--surf-3call-bg)}
+tr.surf-5call.surfaceband td{background:var(--surf-5call-bg)}
 tr.surf-25call.surfaceband td{background:var(--surf-25call-bg)}
 /* per-surface winner: light box around the leading cell within a band+suite */
 td.subwin{box-shadow:inset 0 0 0 2px var(--win-box);border-radius:7px;background:var(--win-fill)}
@@ -1366,6 +1452,16 @@ def metric_label(metric: str) -> str:
     return " ".join({"f1": "F1", "usd": "USD"}.get(word, word) for word in words).capitalize()
 
 
+def surface_display_name(value: str) -> str:
+    """User-facing surface names use turns; historic system ids keep call."""
+    return (
+        value.replace("25call", "25turn")
+        .replace("5call", "5turn")
+        .replace("3call", "3turn")
+        .replace("1call", "1turn")
+    )
+
+
 def git_commit() -> str:
     try:
         out = subprocess.run(
@@ -1384,22 +1480,69 @@ def grader_label(records: list[RunRecord]) -> str:
     return f"{model} via {provider}"
 
 
+def validate_report_version(version: str) -> str:
+    if not SEMVER_RE.match(version):
+        raise SystemExit(f"report version must be git SemVer MAJOR.MINOR.PATCH, got {version!r}")
+    return version
+
+
+def report_version_from_html(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    try:
+        content = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    match = re.search(r'<meta name="report-version" content="([^"]+)">', content)
+    if match and SEMVER_RE.match(match.group(1)):
+        return match.group(1)
+    match = re.search(r'<span class="reportver">v([^<]+)</span>', content)
+    if match and SEMVER_RE.match(match.group(1)):
+        return match.group(1)
+    return None
+
+
+def bump_report_version(version: str, bump: str) -> str:
+    validate_report_version(version)
+    major, minor, patch = (int(part) for part in version.split("."))
+    if bump == "none":
+        return version
+    if bump == "major":
+        return f"{major + 1}.0.0"
+    if bump == "minor":
+        return f"{major}.{minor + 1}.0"
+    if bump == "patch":
+        return f"{major}.{minor}.{patch + 1}"
+    raise SystemExit(f"unknown version bump {bump!r}; use patch, minor, major, or none")
+
+
+def resolve_report_version(args: argparse.Namespace, html_path: Path) -> str:
+    explicit = getattr(args, "report_version", None)
+    if explicit:
+        return validate_report_version(str(explicit))
+    previous = report_version_from_html(html_path)
+    if previous is None:
+        return DEFAULT_REPORT_VERSION
+    return bump_report_version(previous, getattr(args, "version_bump", "patch"))
+
+
 # Surface bands shown as sub-suites in every matrix. label + one-line gloss.
 SURFACE_BANDS = [
     ("plugin", "Plugin", "one pre-inference search, verbatim query"),
-    ("1call", "1-call", "one model-authored search"),
-    ("3call", "3-call", "a few search rounds"),
-    ("25call", "25-call", "best-effort agentic loop (hard cap)"),
+    ("1call", "1-turn", "one model-authored search"),
+    ("3call", "3-turn", "a few search rounds"),
+    ("5call", "5-turn", "deeper search rounds"),
+    ("25call", "25-turn", "best-effort agentic loop (hard cap)"),
 ]
 SURFACE_LABELS = {k: lbl for k, lbl, _ in SURFACE_BANDS}
 
 
-def matrix_legend_html() -> str:
+def matrix_legend_html(bands: list[tuple[str, str, str]] = SURFACE_BANDS) -> str:
     """Programmatic legend explaining the surface bands + winner box, rendered
     once under each matrix head."""
     swatches = "".join(
         f'<span class="lg"><span class="sw" style="background:var(--surf-{k})"></span>{esc(lbl)}</span>'
-        for k, lbl, _ in SURFACE_BANDS
+        for k, lbl, _ in bands
     )
     return (
         '<div class="matlegend">'
@@ -1475,7 +1618,13 @@ def render_banded_matrix(systems, suites, canonical, cell_fn, winners=None):
     return "".join(rows)
 
 
-def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note: str | None = None) -> str:
+def build_report_html(
+    records: list[RunRecord],
+    runs_dir: Path,
+    title: str,
+    note: str | None = None,
+    report_version: str = DEFAULT_REPORT_VERSION,
+) -> str:
     # The matrix and leaderboards show the benchmark: validation artifacts
     # (smokes, probes, POC runs) are excluded entirely — they already sit
     # outside spend and progress, and their browsecomp-only rows otherwise
@@ -1532,6 +1681,38 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
         (s for s in system_rec if system_rec[s].engine != "firecrawl"),
         key=lambda s: system_rec[s].order_key,
     )
+    observed_surfaces = [
+        band for band in SURFACE_BANDS
+        if any(system_rec[system].surface == band[0] for system in systems)
+    ]
+    ladder_parts: list[str] = []
+    for index, (surface, label, description) in enumerate(observed_surfaces):
+        representative = next(system_rec[system] for system in systems if system_rec[system].surface == surface)
+        params = representative.params
+        is_plugin = surface == "plugin"
+        turns = "0 turns" if is_plugin else f"{params.get('max_tool_calls')} turn{'s' if params.get('max_tool_calls') != 1 else ''}"
+        route = "plugins:[web]" if is_plugin else "openrouter:web_search"
+        result_count = params.get("max_results_per_search")
+        results = "backend default" if result_count in {None, "default"} else f"{result_count}/search"
+        max_chars = params.get("max_characters")
+        max_chars_label = "unset" if max_chars is None else str(max_chars)
+        if index:
+            ladder_parts.append(f'<div class="arrow">{ARROW_SVG}</div>')
+        ladder_parts.append(
+            f'<div class="rung{" peak" if index == len(observed_surfaces) - 1 else ""}">'
+            f'<div class="calls">{esc(turns)}</div><div class="name">{esc(label.lower())}</div>'
+            f'<div class="desc">{esc(description)}</div><div class="params">'
+            f'<span class="pp"><b>route</b> {esc(route)}</span>'
+            + ("" if is_plugin else f'<span class="pp"><b>max_tool_calls</b> {esc(params.get("max_tool_calls"))}</span>')
+            + f'<span class="pp"><b>results</b> {esc(results)}</span>'
+            f'<span class="pp"><b>max_chars</b> {esc(max_chars_label)}</span>'
+            '<span class="pp"><b>web_fetch</b> off</span></div></div>'
+        )
+    ladder_html = "".join(ladder_parts)
+    surface_labels = [label.lower() for _, label, _ in observed_surfaces]
+    surface_summary = " · ".join(surface_labels)
+    depth_summary = "→".join(surface_labels[1:])
+    engine_summary = " · ".join(sorted({system_rec[system].engine for system in systems}))
     best_by_suite: dict[str, RunRecord] = {}
     best_is_significant: dict[str, bool] = {}
     for suite in suites:
@@ -1715,7 +1896,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
         matrix_html = f"""<div class="section matrix">
   <div class="head"><h3>Score matrix — system × suite</h3>
   <span class="hint">Failed-as-zero primary metric per suite (n / full suite). Rows are grouped into surface bands (a sub-suite of the test); the boxed cell leads its surface×suite, the green dot marks the overall suite leader.</span></div>
-  {matrix_legend_html()}
+  {matrix_legend_html(observed_surfaces)}
   <table><thead><tr><th class="first">System</th>{header_cells}</tr></thead>
   <tbody>{matrix_body}</tbody></table>
 </div>"""
@@ -1781,7 +1962,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
         price_html = f"""<div class="section matrix">
   <div class="head"><h3>Price matrix — $/task, system × suite</h3>
   <span class="hint">Known provider cost per graded task (agent + grader), grouped by surface band. The boxed cell is the cheapest engine in that surface×suite; the green dot marks the cheapest in the suite overall. Bar length is relative to the most expensive cell.</span></div>
-  {matrix_legend_html()}
+  {matrix_legend_html(observed_surfaces)}
   <table><thead><tr><th class="first">System</th>{header_cells_p}</tr></thead>
   <tbody>{price_body}</tbody></table>
 </div>"""
@@ -1858,7 +2039,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
         latency_html = f"""<div class="section matrix">
   <div class="head"><h3>Latency matrix — agent seconds, system × suite</h3>
   <span class="hint">Per-task agent wall-clock (search loop + generation; excludes grading and retry waits), grouped by surface band. Headline <b>median</b> is timeout-censored: tasks that hit the wall-clock deadline are ranked into the percentiles at the deadline (not dropped), so an engine can't look fast by abandoning hard queries — the subline adds the completed-only median where they differ. Subline also gives the tail (p90 · p95 · max) and unfinished tasks. The boxed cell is the fastest engine in that surface×suite. Bar scales to the worst p95. Concurrency inflates wall-clock — read as a relative signal, not an SLA.</span></div>
-  {matrix_legend_html()}
+  {matrix_legend_html(observed_surfaces)}
   <table><thead><tr><th class="first">System</th>{header_cells_l}</tr></thead>
   <tbody>{lat_body}</tbody></table>
 </div>"""
@@ -1948,7 +2129,7 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
     <div class="cell"><div class="k">Scoring</div><div class="v">Headline numbers use <b>failed-as-zero</b>: tasks that exhausted retries count as 0. The failed-excluded column averages only graded tasks; a large gap between the two signals harness reliability problems, not search quality. Each score carries a 95% Wilson interval; the green <b>Best</b> badge requires the leader's interval to clear every runner-up's, otherwise the row is marked <b>Leading</b> (within noise).</div></div>
     <div class="cell"><div class="k">Grading</div><div class="v">Grader: <span class="chip">{esc(grader)}</span>, matching upstream's gpt-4.1 grading for comparability. Override with <span class="chip">SEARCH_EVALS_GRADER_MODEL</span>.</div></div>
     <div class="cell"><div class="k">Cost</div><div class="v">Provider-reported request cost where available, split by agent vs grader stage. "Known" totals exclude attempts whose providers did not report cost.</div></div>
-    <div class="cell"><div class="k">Surfaces</div><div class="v">Each engine is run across the search-call ladder: <b>plugin</b> (one pre-inference search on the verbatim user message, results injected before generation) · <b>1call</b> (one model-authored search) · <b>3call</b> · <b>25call</b> (the server-tool hard cap — best effort). plugin-vs-1call isolates query quality at a fixed one search; 1call→3call→25call isolates search depth. Per-result content is each engine's native size (uncapped, measured median): exa ~1.9k chars, parallel ~0.9k, perplexity ~0.5k.</div></div>
+    <div class="cell"><div class="k">Surfaces</div><div class="v">Each engine is run across the search-turn ladder: <b>{esc(surface_summary)}</b>. Plugin is one pre-inference search on the verbatim user message; server-tool rows use model-authored searches. Plugin vs 1-turn isolates query quality, while {esc(depth_summary)} isolates search depth. Per-result content uses each engine's configured default unless a row says otherwise.</div></div>
     <div class="cell"><div class="k">Harness scope — search, no fetch</div><div class="v">Not comparable to full multi-tool agent benchmarks: those agents add model-driven page <b>fetching</b> + code tools. Here the model searches and reads capped excerpts but does <b>not</b> fetch full URLs — <span class="chip">web_fetch</span> is off, measured neutral-when-capped and unobservable via the API (it executes but reports no usage). Scores therefore sit below fetch-enabled agents by design; read engine and surface deltas, not absolute levels. <span class="chip">firecrawl</span> is omitted (BYOK key not configured → broken retrieval), and <span class="chip">native</span> is omitted (plugin-native 400s for non-OpenAI models, and server-tool native ignores the call/char caps — not a like-for-like backend).</div></div>
     <div class="cell"><div class="k">Comparability</div><div class="v">Rows in one suite leaderboard share the same dataset fingerprint and suite instructions (enforced by the config hash). Smoke/probe runs are excluded. All shown rows are pinned single-engine server-tool or plugin lanes at a fixed reasoning model, so deltas isolate the search backend and the surface. Plugin-route rows inherit OpenRouter's default <span class="chip">search_prompt</span> (the instruction attaching results to the message), an uncontrolled variable of that surface — read plugin as a product, not a like-for-like backend vs the server-tool rows.</div></div>
   </div>
@@ -1975,33 +2156,20 @@ def build_report_html(records: list[RunRecord], runs_dir: Path, title: str, note
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="report-version" content="{esc(report_version)}">
 <title>{esc(title)}</title><style>{CSS}</style></head>
 <body><div class="page">
 <div class="topbar">
   <div class="brand">{LOGO_MARK}<span>OpenRouter</span></div>
-  <div class="right"><span class="dot"></span>Search evals · benchmark report</div>
+  <div class="right"><span class="reportver">v{esc(report_version)}</span><span class="dot"></span>Search evals · benchmark report</div>
 </div>
-{progress_html}
-{note_banner}
 <div class="headgrid">
   <div>
     <div class="eyebrow">Search evals</div>
     <h1>{esc(title)}</h1>
-    <div class="ladder">
-      <div class="rung"><div class="calls">0 calls</div><div class="name">plugin</div><div class="desc">one search before the model runs</div>
-        <div class="params"><span class="pp"><b>route</b> plugins:[web]</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>max_chars</b> unset</span><span class="pp"><b>web_fetch</b> off</span></div></div>
-      <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung"><div class="calls">1 call</div><div class="name">1-call</div><div class="desc">model writes one query</div>
-        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 1</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
-      <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung"><div class="calls">3 calls</div><div class="name">3-call</div><div class="desc">a few search rounds</div>
-        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 3</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
-      <div class="arrow">{ARROW_SVG}</div>
-      <div class="rung peak"><div class="calls">25 calls</div><div class="name">25-call</div><div class="desc">full agentic loop, hard cap</div>
-        <div class="params"><span class="pp"><b>route</b> openrouter:web_search</span><span class="pp"><b>max_tool_calls</b> 25</span><span class="pp"><b>results</b> 10/search</span><span class="pp"><b>web_fetch</b> off</span></div></div>
-    </div>
+    <div class="ladder">{ladder_html}</div>
     <div class="paramline">
-      <span class="param"><b>engines</b> exa · parallel · perplexity</span>
+      <span class="param"><b>engines</b> {esc(engine_summary)}</span>
       <span class="param"><b>tool</b> openrouter:web_search</span>
       <span class="param"><b>grader</b> {esc(grader)}</span>
     </div>
@@ -2163,10 +2331,18 @@ def cmd_report(args: argparse.Namespace) -> int:
     out_dir = args.out
     out_dir.mkdir(parents=True, exist_ok=True)
     html_path = out_dir / "benchmark-report.html"
+    report_version = resolve_report_version(args, html_path)
     html_path.write_text(
-        build_report_html(records, args.runs_dir, args.title, note=getattr(args, "note", None)), encoding="utf-8"
+        build_report_html(
+            records,
+            args.runs_dir,
+            args.title,
+            note=getattr(args, "note", None),
+            report_version=report_version,
+        ),
+        encoding="utf-8",
     )
-    print(f"report: {html_path}")
+    print(f"report: {html_path} (v{report_version})")
     png_path = out_dir / "benchmark-report.png"
     if args.png:
         if screenshot_html(html_path, png_path):
@@ -2223,6 +2399,13 @@ def build_parser() -> argparse.ArgumentParser:
     sweep.add_argument("--out", type=Path, default=Path("reports"))
     sweep.add_argument("--title", default="Search Engine Benchmark Report")
     sweep.add_argument("--note", help="disclaimer banner rendered at the top of every checkpoint report")
+    sweep.add_argument("--report-version", help="SemVer version to stamp on generated checkpoint reports (defaults to 0.0.1 for new reports)")
+    sweep.add_argument("--version-bump", choices=["patch", "minor", "major", "none"], default="patch",
+                       help="when regenerating an already-versioned report without --report-version, bump this SemVer part (default: patch)")
+    sweep.add_argument("--report-bench", action="append",
+                       help="run-suffix prefix to include in checkpoint reports; repeatable. Defaults to --run-suffix.")
+    sweep.add_argument("--report-system", action="append",
+                       help="system to include in checkpoint reports; repeatable. Defaults to --system so a resumed subset can still publish the full matrix.")
     sweep.add_argument("--save-latest", action="store_true",
                        help="after the final cell, copy the report into <out>/latest/ with the README preview")
     sweep.add_argument("--config", type=Path, default=Path("systems.toml"))
@@ -2245,6 +2428,9 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--bench", action="append", help="scope to a benchmark: keep runs whose run-suffix starts with this prefix (e.g. ds-plugin-v1, ds-v1). Repeatable to combine several benches (e.g. --bench nano-v1 --bench nano-25call)")
     report.add_argument("--title", default="Search Engine Benchmark Report")
     report.add_argument("--note", help="disclaimer banner rendered at the top of the report")
+    report.add_argument("--report-version", help="SemVer version to stamp on the report (defaults to 0.0.1 for new reports)")
+    report.add_argument("--version-bump", choices=["patch", "minor", "major", "none"], default="patch",
+                        help="when regenerating an already-versioned report without --report-version, bump this SemVer part (default: patch)")
     report.add_argument("--png", action="store_true", help="also screenshot the report to PNG (needs Chrome)")
     report.add_argument("--save-latest", action="store_true",
                         help="copy report into <out>/latest/ and render the README preview image")

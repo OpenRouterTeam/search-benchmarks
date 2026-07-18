@@ -46,6 +46,11 @@ class WideSearchSuite(BaseSuite):
 
 
 class WideSearchGrader(OpenAIGrader):
+    # WideSearch grading can perform column/value alignment plus batched LLM
+    # cell judging over many rows. The global 45s binary-grader timeout is too
+    # tight and causes evaluation infra failures to look like search failures.
+    timeout_seconds = 180.0
+
     async def grade(self, task: TaskDatum, predicted_answer: str, trace_dir: Path) -> GraderResult:
         costs: list[HarnessCost] = []
         try:

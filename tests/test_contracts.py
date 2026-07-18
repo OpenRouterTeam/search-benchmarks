@@ -4,6 +4,7 @@ import asyncio
 import base64
 import hashlib
 import logging
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -29,11 +30,13 @@ from search_evals.harnesses.base import (
     TerminalHarnessResponseError,
 )
 from search_evals.harnesses.exa import EXA_AGENT_BETA_HEADER, ExaAPIError, ExaHarness, ExaResponse
+from search_evals.harnesses.hermes import HermesHarness
 from search_evals.harnesses.openai import OpenAIHarness
 from search_evals.harnesses.openrouter import OpenRouterHarness
 from search_evals.harnesses.openrouter_legacy import OpenRouterLegacyHarness
 from search_evals.harnesses.openrouter_sdk import OpenRouterSDKHarness
 from search_evals.harnesses.parallel import ParallelAPIError, ParallelHarness, ParallelResponse
+from search_evals.harnesses.pi import PiHarness, _raise_for_provider_error
 from search_evals.harnesses.registry import make_harness
 from search_evals.harnesses.responses import TransientRetrieveError
 from search_evals.io import append_jsonl, read_json, write_json
@@ -47,6 +50,8 @@ from search_evals.schemas import (
     HarnessCost,
     HarnessParams,
     HarnessResult,
+    HermesParams,
+    HermesSystemConfig,
     OpenAIParams,
     OpenAISystemConfig,
     OpenRouterLegacySystemConfig,
@@ -55,6 +60,8 @@ from search_evals.schemas import (
     OpenRouterSystemConfig,
     ParallelParams,
     ParallelSystemConfig,
+    PiParams,
+    PiSystemConfig,
     SchemaError,
     TaskDatum,
     TaskResult,
@@ -204,19 +211,59 @@ def test_system_configs_load_as_provider_specific_types_and_keep_existing_hash()
     systems = load_systems()
     engine_names = ["auto", "exa", "firecrawl", "native", "parallel", "perplexity"]
     assert sorted(systems) == [
+        *[
+            f"hermes-openrouter-web-search-25call-no-totalcap-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "parallel", "perplexity"]
+        ],
         *[f"openrouter-plugin-glm-5-1-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-plugin-gpt-5-4-nano-{engine}" for engine in engine_names],
         *[f"openrouter-plugin-nemotron-3-ultra-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-1call-glm-5-1-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-1call-gpt-5-4-nano-{engine}" for engine in ["exa", "perplexity"]],
         *[f"openrouter-web-search-1call-nemotron-3-ultra-{engine}" for engine in ["exa", "parallel", "perplexity"]],
+        *[
+            f"openrouter-web-search-25call-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "exa-4k", "parallel", "perplexity"]
+        ],
         *[f"openrouter-web-search-25call-glm-5-1-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-25call-gpt-5-4-nano-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-25call-nemotron-3-ultra-{engine}" for engine in ["exa", "parallel", "perplexity"]],
+        "openrouter-web-search-25call-no-totalcap-4k-glm-5-1-exa",
+        "openrouter-web-search-25call-no-totalcap-glm-5-1-exa",
         *[f"openrouter-web-search-3call-glm-5-1-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-3call-nemotron-3-ultra-{engine}" for engine in ["exa", "parallel", "perplexity"]],
         *[f"openrouter-web-search-gpt-5-4-nano-{engine}" for engine in engine_names],
+        "pi-openrouter-glm-5-2-nitro",
+        *[
+            f"pi-openrouter-plugin-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "parallel", "perplexity"]
+        ],
+        *[
+            f"pi-openrouter-web-search-1call-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "parallel", "perplexity"]
+        ],
+        *[
+            f"pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "exa-4k", "parallel", "perplexity"]
+        ],
+        *[
+            f"pi-openrouter-web-search-3call-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "parallel", "perplexity"]
+        ],
+        *[
+            f"pi-openrouter-web-search-5call-defaults-glm-5-2-nitro-{engine}"
+            for engine in ["exa", "parallel", "perplexity"]
+        ],
     ]
+    hermes_glm_exa = systems["hermes-openrouter-web-search-25call-no-totalcap-glm-5-2-nitro-exa"]
+    assert isinstance(hermes_glm_exa, HermesSystemConfig)
+    assert isinstance(hermes_glm_exa.params, HermesParams)
+    assert hermes_glm_exa.params.model == "z-ai/glm-5.2:nitro"
+    assert hermes_glm_exa.params.enabled_toolsets == ()
+    assert hermes_glm_exa.params.search_backend == "exa"
+    assert hermes_glm_exa.params.max_tool_calls == 25
+    assert hermes_glm_exa.params.provider_order == ("baseten", "parasail", "deepinfra", "atlascloud", "chutes")
+    assert type(make_harness(hermes_glm_exa)) is HermesHarness
     nano = "openrouter-web-search-gpt-5-4-nano-exa"
     assert systems["openrouter-web-search-gpt-5-4-nano-parallel"].params.model == "openai/gpt-5.4-nano"
     assert isinstance(systems[nano], OpenRouterSystemConfig)
@@ -232,6 +279,73 @@ def test_system_configs_load_as_provider_specific_types_and_keep_existing_hash()
     assert systems["openrouter-web-search-gpt-5-4-nano-perplexity"].params.max_characters is None
     assert systems["openrouter-web-search-1call-glm-5-1-exa"].params.model == "z-ai/glm-5.1"
     assert systems["openrouter-web-search-1call-glm-5-1-exa"].params.max_tool_calls == 1
+    glm_exa_no_totalcap = systems["openrouter-web-search-25call-no-totalcap-glm-5-1-exa"].params
+    assert glm_exa_no_totalcap.model == "z-ai/glm-5.1"
+    assert glm_exa_no_totalcap.search_backend == "exa"
+    assert glm_exa_no_totalcap.max_tool_calls == 25
+    assert glm_exa_no_totalcap.max_results_per_search == 10
+    assert glm_exa_no_totalcap.max_total_results is None
+    assert glm_exa_no_totalcap.max_characters is None
+    glm_exa_no_totalcap_4k = systems["openrouter-web-search-25call-no-totalcap-4k-glm-5-1-exa"].params
+    assert glm_exa_no_totalcap_4k.model == "z-ai/glm-5.1"
+    assert glm_exa_no_totalcap_4k.search_backend == "exa"
+    assert glm_exa_no_totalcap_4k.max_tool_calls == 25
+    assert glm_exa_no_totalcap_4k.max_results_per_search == 10
+    assert glm_exa_no_totalcap_4k.max_total_results is None
+    assert glm_exa_no_totalcap_4k.max_characters == 4000
+    glm_52_defaults = systems["openrouter-web-search-25call-defaults-glm-5-2-nitro-exa"].params
+    assert glm_52_defaults.model == "z-ai/glm-5.2:nitro"
+    assert glm_52_defaults.search_backend == "exa"
+    assert glm_52_defaults.max_results_per_search == "default"
+    assert glm_52_defaults.max_total_results is None
+    assert glm_52_defaults.max_characters is None
+    glm_52_defaults_4k = systems["openrouter-web-search-25call-defaults-glm-5-2-nitro-exa-4k"].params
+    assert glm_52_defaults_4k.search_backend == "exa"
+    assert glm_52_defaults_4k.max_results_per_search == "default"
+    assert glm_52_defaults_4k.max_total_results is None
+    assert glm_52_defaults_4k.max_characters == 4000
+    pi_glm_52 = systems["pi-openrouter-glm-5-2-nitro"]
+    assert isinstance(pi_glm_52, PiSystemConfig)
+    assert isinstance(pi_glm_52.params, PiParams)
+    assert pi_glm_52.params.model == "z-ai/glm-5.2:nitro"
+    assert pi_glm_52.params.provider == "openrouter"
+    assert pi_glm_52.params.thinking_level == "high"
+    assert pi_glm_52.params.no_tools == "all"
+    assert type(make_harness(pi_glm_52)) is PiHarness
+    pi_glm_52_plugin = systems["pi-openrouter-plugin-defaults-glm-5-2-nitro-exa"].params
+    assert pi_glm_52_plugin.web_search == "plugin"
+    assert pi_glm_52_plugin.search_backend == "exa"
+    assert pi_glm_52_plugin.max_results_per_search == "default"
+    pi_glm_52_1turn = systems["pi-openrouter-web-search-1call-defaults-glm-5-2-nitro-exa"].params
+    assert pi_glm_52_1turn.web_search == "server-tool"
+    assert pi_glm_52_1turn.search_backend == "exa"
+    assert pi_glm_52_1turn.max_results_per_search == "default"
+    assert pi_glm_52_1turn.max_total_results is None
+    assert pi_glm_52_1turn.max_tool_calls == 1
+    pi_glm_52_3turn = systems["pi-openrouter-web-search-3call-defaults-glm-5-2-nitro-exa"].params
+    assert pi_glm_52_3turn.web_search == "server-tool"
+    assert pi_glm_52_3turn.search_backend == "exa"
+    assert pi_glm_52_3turn.max_results_per_search == "default"
+    assert pi_glm_52_3turn.max_total_results is None
+    assert pi_glm_52_3turn.max_tool_calls == 3
+    pi_glm_52_5turn = systems["pi-openrouter-web-search-5call-defaults-glm-5-2-nitro-exa"].params
+    assert pi_glm_52_5turn.web_search == "server-tool"
+    assert pi_glm_52_5turn.search_backend == "exa"
+    assert pi_glm_52_5turn.max_results_per_search == "default"
+    assert pi_glm_52_5turn.max_total_results is None
+    assert pi_glm_52_5turn.max_tool_calls == 5
+    pi_glm_52_exa = systems["pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-exa"].params
+    assert pi_glm_52_exa.web_search == "server-tool"
+    assert pi_glm_52_exa.search_backend == "exa"
+    assert pi_glm_52_exa.max_results_per_search == "default"
+    assert pi_glm_52_exa.max_total_results is None
+    assert pi_glm_52_exa.max_tool_calls == 25
+    pi_glm_52_exa_4k = systems["pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-exa-4k"].params
+    assert pi_glm_52_exa_4k.web_search == "server-tool"
+    assert pi_glm_52_exa_4k.search_backend == "exa"
+    assert pi_glm_52_exa_4k.max_results_per_search == "default"
+    assert pi_glm_52_exa_4k.max_total_results is None
+    assert pi_glm_52_exa_4k.max_characters == 4000
     assert type(make_harness(systems[nano])) is OpenRouterHarness
     manifest = make_manifest(
         systems[nano],
@@ -606,6 +720,33 @@ def test_openrouter_harness_builds_web_search_payload_and_cost() -> None:
             }
         ],
     }
+
+
+def test_glm_5_2_openrouter_defaults_omit_result_caps() -> None:
+    request = HarnessRequest(
+        task_id="task",
+        suite="browsecomp",
+        problem="problem",
+        instructions="instructions",
+        attempt_dir=Path("attempt"),
+        run_dir=Path("run"),
+    )
+    systems = load_systems()
+    expected = {
+        "openrouter-web-search-25call-defaults-glm-5-2-nitro-exa": {"engine": "exa"},
+        "openrouter-web-search-25call-defaults-glm-5-2-nitro-exa-4k": {
+            "engine": "exa",
+            "max_characters": 4000,
+        },
+        "openrouter-web-search-25call-defaults-glm-5-2-nitro-parallel": {"engine": "parallel"},
+        "openrouter-web-search-25call-defaults-glm-5-2-nitro-perplexity": {"engine": "perplexity"},
+    }
+    for system_name, parameters in expected.items():
+        payload = make_harness(systems[system_name]).build_create_payload(request)
+        assert payload["tools"] == [{"type": "openrouter:web_search", "parameters": parameters}]
+        assert payload["stop_server_tools_when"] == [{"type": "step_count_is", "step_count": 25}]
+        assert "max_results" not in payload["tools"][0]["parameters"]
+        assert "max_total_results" not in payload["tools"][0]["parameters"]
 
 
 def test_openrouter_plugin_payload_uses_plugin_domain_names() -> None:
@@ -2274,6 +2415,29 @@ class FakeGrader(BaseGrader):
         )
 
 
+class SlowGrader(FakeGrader):
+    timeout_seconds = 0.01
+
+    async def grade(self, task: TaskDatum, predicted_answer: str, trace_dir: Path) -> GraderResult:
+        del task, predicted_answer, trace_dir
+        await asyncio.sleep(60)
+        raise AssertionError("unreachable")
+
+
+class FlakyGrader(FakeGrader):
+    timeout_seconds = 45.0
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls = 0
+
+    async def grade(self, task: TaskDatum, predicted_answer: str, trace_dir: Path) -> GraderResult:
+        self.calls += 1
+        if self.calls == 1:
+            raise RuntimeError("grader transport failed")
+        return await super().grade(task, predicted_answer, trace_dir)
+
+
 class FakeSuite(BaseSuite):
     name = "fake"
     instructions = "instructions"
@@ -2286,6 +2450,16 @@ class FakeSuite(BaseSuite):
     def load_tasks(self, limit: int | None) -> list[TaskDatum]:
         del limit
         return [TaskDatum(id="task", problem="problem", answer="answer", metadata={})]
+
+
+class SlowGraderSuite(FakeSuite):
+    def make_grader(self) -> BaseGrader:
+        return SlowGrader()
+
+
+class FlakyGraderSuite(FakeSuite):
+    def make_grader(self) -> BaseGrader:
+        return FlakyGrader()
 
 
 def _fake_system() -> OpenAISystemConfig:
@@ -2354,6 +2528,63 @@ def test_runner_resubmits_failed_tasks_on_later_run(
     assert len(list(second.run_dir.glob("tasks/*/attempts/*"))) == 4
     result = read_json(next(second.run_dir.glob("tasks/*/result.json")))
     assert result["attempt_number"] == 4
+
+
+def test_runner_excludes_ungraded_agent_answers_from_score_denominator(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("search_evals.runner.TASK_RETRY_DELAY_SECONDS", 0.0)
+    system = _fake_system()
+    runner = EvalRunner(
+        system=system,
+        suite=SlowGraderSuite(),
+        harness=FakeHarness("fake", system.params),
+        runs_dir=tmp_path,
+        concurrency=1,
+        limit=1,
+        run_suffix=None,
+        task_timeout=1200,
+    )
+    summary = asyncio.run(runner.run())
+    assert summary["completed_tasks"] == 0
+    assert summary["total_failed"] == 0
+    assert summary["ungraded_tasks"] == 1
+    assert summary["score_denominator"] == 0
+    assert summary["failed_as_zero"]["score"] == 0.0
+    assert summary["failed_as_zero"]["score_ci95"] is None
+    attempts = list(runner.run_dir.glob("tasks/*/attempts/*"))
+    assert len(attempts) == 1
+    assert (attempts[0] / "agent" / "result.json").exists()
+    assert not (attempts[0] / "grader" / "result.json").exists()
+
+
+def test_runner_retries_grader_failures_without_rerunning_agent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("search_evals.runner.TASK_RETRY_DELAY_SECONDS", 0.0)
+    system = _fake_system()
+    suite = FlakyGraderSuite()
+    harness = FakeHarness("fake", system.params)
+    runner = EvalRunner(
+        system=system,
+        suite=suite,
+        harness=harness,
+        runs_dir=tmp_path,
+        concurrency=1,
+        limit=1,
+        run_suffix=None,
+    )
+    summary = asyncio.run(runner.run())
+    assert summary["completed_tasks"] == 1
+    assert suite.grader.calls == 2
+    attempts = list(runner.run_dir.glob("tasks/*/attempts/*"))
+    assert len(attempts) == 1
+    assert read_json(attempts[0] / "attempt.json")["status"] == "complete"
+    assert read_json(next(runner.run_dir.glob("tasks/*/result.json")))["attempt_number"] == 1
+
+
+def test_widesearch_grader_gets_suite_specific_timeout() -> None:
+    assert WideSearchGrader.timeout_seconds == 180.0
 
 
 def test_runner_logs_concise_human_readable_scores_and_costs(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
@@ -2431,6 +2662,27 @@ def test_runner_warns_when_failed_tasks_are_counted_as_zero(caplog: pytest.LogCa
     assert "  Primary score: 0.600000" in logs
 
 
+def test_runner_warns_when_tasks_are_ungraded(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.INFO, logger="search_evals")
+    runner = object.__new__(EvalRunner)
+    runner._log_summary(
+        {
+            "system": "fake",
+            "suite": "fake",
+            "completed_tasks": 3,
+            "total_failed": 0,
+            "ungraded_tasks": 2,
+            "primary_metric": "score",
+            "failed_as_zero": {"score": 0.8, "metrics": {}},
+            "cost": {"known_cost_usd": 0.0, "total_cost_usd": 0.0, "by_stage": {}},
+        }
+    )
+    warning = "2 tasks produced agent answers but were not graded; excluded from score denominators"
+    assert warning in caplog.text
+    assert any(record.levelno == logging.WARNING and record.getMessage() == warning for record in caplog.records)
+    assert "will be treated as zeroes" not in caplog.text
+
+
 def test_cli_run_does_not_print_raw_summary_json(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     class FakeRunner:
         def __init__(self, **_: object) -> None:
@@ -2467,6 +2719,36 @@ def test_runner_creates_new_attempt_after_missing_durable_response(tmp_path: Pat
     (attempt / "agent").mkdir()
     (attempt / "agent" / "state.json").write_text('{"response_id":"resp_missing","status":"in_progress"}')
     assert _next_attempt_number(tmp_path) == 2
+
+
+def test_pi_provider_error_artifact_is_not_treated_as_empty_answer() -> None:
+    artifact = {
+        "messages": [
+            {
+                "role": "assistant",
+                "stopReason": "error",
+                "errorMessage": "403 Key limit exceeded (total limit)",
+            }
+        ]
+    }
+
+    with pytest.raises(NonRetryableHarnessError, match="Key limit exceeded"):
+        _raise_for_provider_error(artifact)
+
+
+def test_pi_transient_provider_error_can_retry() -> None:
+    artifact = {
+        "messages": [
+            {
+                "role": "assistant",
+                "stopReason": "error",
+                "errorMessage": "provider overloaded",
+            }
+        ]
+    }
+
+    with pytest.raises(TerminalHarnessResponseError, match="provider overloaded"):
+        _raise_for_provider_error(artifact)
 
 
 def test_runner_retries_durable_agent_state_without_creating_paid_attempt(
@@ -2542,3 +2824,152 @@ def test_runner_creates_new_attempt_after_terminal_harness_response(
     assert summary["completed_tasks"] == 1
     assert harness.calls == 2
     assert len(list(runner.run_dir.glob("tasks/*/attempts/*"))) == 2
+
+
+def test_report_version_defaults_and_patch_bumps(tmp_path: Path) -> None:
+    from argparse import Namespace
+
+    from scripts.benchmark_report import resolve_report_version
+
+    html_path = tmp_path / "benchmark-report.html"
+    args = Namespace(report_version=None, version_bump="patch")
+    assert resolve_report_version(args, html_path) == "0.0.1"
+
+    html_path.write_text('<meta name="report-version" content="1.2.3">', encoding="utf-8")
+    assert resolve_report_version(args, html_path) == "1.2.4"
+    assert resolve_report_version(Namespace(report_version=None, version_bump="minor"), html_path) == "1.3.0"
+    assert resolve_report_version(Namespace(report_version=None, version_bump="major"), html_path) == "2.0.0"
+    assert resolve_report_version(Namespace(report_version="9.8.7", version_bump="patch"), html_path) == "9.8.7"
+
+
+def test_scale_run_suffix_is_exact_to_named_sweep_family() -> None:
+    from scripts.benchmark_report import scale_run_suffix
+
+    assert scale_run_suffix(None, 0) == "scale-seed0"
+    assert scale_run_suffix("pi-glm-5-2-defaults", 0) == "pi-glm-5-2-defaults-scale-seed0"
+    assert scale_run_suffix("pi-glm-5-2-evalkey-clean", 0) != "pi-glm-5-2-defaults-scale-seed0"
+
+
+def test_sweep_terminal_tasks_counts_ungraded_summary_slots(tmp_path: Path) -> None:
+    from scripts.benchmark_report import RunRecord
+
+    record = RunRecord(
+        path=tmp_path,
+        manifest={"system": {"name": "system"}, "suite": "widesearch"},
+        summary={
+            "selected_tasks": 100,
+            "completed_tasks": 98,
+            "ungraded_tasks": 2,
+            "total_failed": 0,
+        },
+    )
+
+    assert record.status == "PARTIAL"
+    assert record.terminal_tasks == 100
+
+
+def test_pi_openrouter_server_tool_rows_compete_as_engine_rows(tmp_path: Path) -> None:
+    from scripts.benchmark_report import RunRecord
+
+    record = RunRecord(
+        path=tmp_path,
+        manifest={
+            "system": {
+                "name": "pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-exa",
+                "harness": "pi",
+                "params": {
+                    "model": "z-ai/glm-5.2:nitro",
+                    "web_search": "server-tool",
+                    "search_backend": "exa",
+                    "max_tool_calls": 25,
+                },
+            },
+            "suite": "browsecomp",
+        },
+        summary={"completed_tasks": 100},
+    )
+
+    assert record.engine == "exa"
+    assert record.is_engine_row
+
+
+def test_pi_openrouter_plugin_rows_compete_as_engine_rows(tmp_path: Path) -> None:
+    from scripts.benchmark_report import RunRecord
+
+    record = RunRecord(
+        path=tmp_path,
+        manifest={
+            "system": {
+                "name": "pi-openrouter-plugin-defaults-glm-5-2-nitro-exa",
+                "harness": "pi",
+                "params": {
+                    "model": "z-ai/glm-5.2:nitro",
+                    "web_search": "plugin",
+                    "search_backend": "exa",
+                },
+            },
+            "suite": "browsecomp",
+        },
+        summary={"completed_tasks": 100},
+    )
+
+    assert record.engine == "exa"
+    assert record.surface == "plugin"
+    assert record.is_engine_row
+
+
+def test_report_surface_names_display_turns() -> None:
+    from scripts.benchmark_report import SURFACE_LABELS, surface_display_name
+
+    assert SURFACE_LABELS["1call"] == "1-turn"
+    assert SURFACE_LABELS["3call"] == "3-turn"
+    assert SURFACE_LABELS["5call"] == "5-turn"
+    assert SURFACE_LABELS["25call"] == "25-turn"
+    assert surface_display_name("web-search-5call-defaults-glm-5-2-nitro-exa") == (
+        "web-search-5turn-defaults-glm-5-2-nitro-exa"
+    )
+
+
+def test_pi_runner_builds_openrouter_plugin_payload_without_network() -> None:
+    script = """
+import { buildOpenRouterPayload } from './search_evals/harnesses/pi_runner.mjs';
+const payload = buildOpenRouterPayload(
+  { id: 'z-ai/glm-5.2:nitro' },
+  { systemPrompt: 'sys', messages: [{ role: 'user', content: 'problem' }] },
+  { reasoning: 'high', maxTokens: 8192 },
+  { web_search: 'plugin', search_backend: 'exa', max_results_per_search: 'default' }
+);
+console.log(JSON.stringify(payload));
+"""
+    result = subprocess.run(
+        ["node", "--input-type=module", "-e", script],
+        cwd=Path(__file__).resolve().parent.parent,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    payload = orjson.loads(result.stdout)
+
+    assert payload["plugins"] == [{"id": "web", "engine": "exa"}]
+    assert "tools" not in payload
+    assert "max_results" not in payload["plugins"][0]
+
+
+def test_plain_pi_agent_rows_remain_baselines(tmp_path: Path) -> None:
+    from scripts.benchmark_report import RunRecord
+
+    record = RunRecord(
+        path=tmp_path,
+        manifest={
+            "system": {
+                "name": "pi-openrouter-glm-5-2-nitro",
+                "harness": "pi",
+                "params": {"model": "z-ai/glm-5.2:nitro", "provider": "openrouter"},
+            },
+            "suite": "browsecomp",
+        },
+        summary={"completed_tasks": 100},
+    )
+
+    assert record.engine == "pi"
+    assert not record.is_engine_row

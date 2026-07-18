@@ -8,6 +8,261 @@
 # budget) — matching what a default openrouter:web_search user gets.
 
 # ---------------------------------------------------------------------------
+# Hermes Agent + OpenRouter web-search matrix — GLM 5.2 Nitro
+# ---------------------------------------------------------------------------
+
+[systems.hermes-openrouter-web-search-25call-no-totalcap-glm-5-2-nitro-exa]
+harness = "hermes"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+max_iterations = 25
+enabled_toolsets = []
+reasoning_effort = "high"
+max_tokens = 128000
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = 10
+max_tool_calls = 25
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
+provider_allow_fallbacks = true
+
+[systems.hermes-openrouter-web-search-25call-no-totalcap-glm-5-2-nitro-parallel]
+harness = "hermes"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+max_iterations = 25
+enabled_toolsets = []
+reasoning_effort = "high"
+max_tokens = 128000
+web_search = "server-tool"
+search_backend = "parallel"
+max_results_per_search = 10
+max_tool_calls = 25
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
+provider_allow_fallbacks = true
+
+[systems.hermes-openrouter-web-search-25call-no-totalcap-glm-5-2-nitro-perplexity]
+harness = "hermes"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+max_iterations = 25
+enabled_toolsets = []
+reasoning_effort = "high"
+max_tokens = 128000
+web_search = "server-tool"
+search_backend = "perplexity"
+max_results_per_search = 10
+max_tool_calls = 25
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
+provider_allow_fallbacks = true
+
+[systems.pi-openrouter-glm-5-2-nitro]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+
+[systems.pi-openrouter-plugin-defaults-glm-5-2-nitro-exa]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "plugin"
+search_backend = "exa"
+max_results_per_search = "default"
+
+[systems.pi-openrouter-plugin-defaults-glm-5-2-nitro-parallel]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "plugin"
+search_backend = "parallel"
+max_results_per_search = "default"
+
+[systems.pi-openrouter-plugin-defaults-glm-5-2-nitro-perplexity]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "plugin"
+search_backend = "perplexity"
+max_results_per_search = "default"
+
+[systems.pi-openrouter-web-search-1call-defaults-glm-5-2-nitro-exa]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = "default"
+max_tool_calls = 1
+
+[systems.pi-openrouter-web-search-1call-defaults-glm-5-2-nitro-parallel]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "parallel"
+max_results_per_search = "default"
+max_tool_calls = 1
+
+[systems.pi-openrouter-web-search-1call-defaults-glm-5-2-nitro-perplexity]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "perplexity"
+max_results_per_search = "default"
+max_tool_calls = 1
+
+[systems.pi-openrouter-web-search-3call-defaults-glm-5-2-nitro-exa]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = "default"
+max_tool_calls = 3
+
+[systems.pi-openrouter-web-search-3call-defaults-glm-5-2-nitro-parallel]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "parallel"
+max_results_per_search = "default"
+max_tool_calls = 3
+
+[systems.pi-openrouter-web-search-3call-defaults-glm-5-2-nitro-perplexity]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "perplexity"
+max_results_per_search = "default"
+max_tool_calls = 3
+
+[systems.pi-openrouter-web-search-5call-defaults-glm-5-2-nitro-exa]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = "default"
+max_tool_calls = 5
+
+[systems.pi-openrouter-web-search-5call-defaults-glm-5-2-nitro-parallel]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "parallel"
+max_results_per_search = "default"
+max_tool_calls = 5
+
+[systems.pi-openrouter-web-search-5call-defaults-glm-5-2-nitro-perplexity]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "perplexity"
+max_results_per_search = "default"
+max_tool_calls = 5
+
+[systems.pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-exa]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = "default"
+max_tool_calls = 25
+
+[systems.pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-exa-4k]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "exa"
+max_results_per_search = "default"
+max_tool_calls = 25
+max_characters = 4000
+
+[systems.pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-parallel]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "parallel"
+max_results_per_search = "default"
+max_tool_calls = 25
+
+[systems.pi-openrouter-web-search-25call-defaults-glm-5-2-nitro-perplexity]
+harness = "pi"
+model = "z-ai/glm-5.2:nitro"
+provider = "openrouter"
+thinking_level = "high"
+no_tools = "all"
+web_search = "server-tool"
+search_backend = "perplexity"
+max_results_per_search = "default"
+max_tool_calls = 25
+
+# ---------------------------------------------------------------------------
+# GLM 5.2 Nitro OpenRouter defaults matrix
+# ---------------------------------------------------------------------------
+[openrouter_matrices.web_search_engines_25call_defaults_glm_5_2]
+system_prefix = "openrouter-web-search-25call-defaults"
+engines = [
+  "exa",
+  { name = "exa", max_characters = 4000, label = "exa-4k" },
+  "parallel",
+  "perplexity",
+]
+
+[openrouter_matrices.web_search_engines_25call_defaults_glm_5_2.defaults]
+reasoning_effort = "high"
+max_output_tokens = 128000
+web_search = "server-tool"
+max_results_per_search = "default"
+max_tool_calls = 25
+
+[[openrouter_matrices.web_search_engines_25call_defaults_glm_5_2.models]]
+id = "z-ai/glm-5.2:nitro"
+name = "glm-5-2-nitro"
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
+provider_allow_fallbacks = true
+
+# ---------------------------------------------------------------------------
 # nano server-tool matrix (3-call default) — pathfinder lane
 # ---------------------------------------------------------------------------
 [openrouter_matrices.web_search_engines]
@@ -73,6 +328,45 @@ provider_allow_fallbacks = true
 id = "nvidia/nemotron-3-ultra-550b-a55b"
 name = "nemotron-3-ultra"
 provider_order = ["deepinfra", "together"]
+provider_allow_fallbacks = true
+
+# GLM 25-call EXA rerun after Exa optimized highlights became the default.
+# Same as openrouter-web-search-25call-glm-5-1-exa, except max_total_results is
+# deliberately unset so OpenRouter/Exa exercise the current default behavior.
+[openrouter_matrices.web_search_engines_25call_no_totalcap]
+system_prefix = "openrouter-web-search-25call-no-totalcap"
+engines = ["exa"]
+
+[openrouter_matrices.web_search_engines_25call_no_totalcap.defaults]
+reasoning_effort = "high"
+max_output_tokens = 128000
+web_search = "server-tool"
+max_results_per_search = 10
+max_tool_calls = 25
+
+[[openrouter_matrices.web_search_engines_25call_no_totalcap.models]]
+id = "z-ai/glm-5.1"
+name = "glm-5-1"
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
+provider_allow_fallbacks = true
+
+# GLM 25-call EXA rerun with the same no-totalcap shape, but capping each
+# Exa result's content/highlights payload at 4k characters.
+[openrouter_matrices.web_search_engines_25call_no_totalcap_4k]
+system_prefix = "openrouter-web-search-25call-no-totalcap-4k"
+engines = [{ name = "exa", max_characters = 4000 }]
+
+[openrouter_matrices.web_search_engines_25call_no_totalcap_4k.defaults]
+reasoning_effort = "high"
+max_output_tokens = 128000
+web_search = "server-tool"
+max_results_per_search = 10
+max_tool_calls = 25
+
+[[openrouter_matrices.web_search_engines_25call_no_totalcap_4k.models]]
+id = "z-ai/glm-5.1"
+name = "glm-5-1"
+provider_order = ["baseten", "parasail", "deepinfra", "atlascloud", "chutes"]
 provider_allow_fallbacks = true
 
 # ---------------------------------------------------------------------------

@@ -30,7 +30,7 @@ TASK_RETRY_DELAY_SECONDS = 5.0
 # So cap tight and retry: 45s is ~3.7x the p95 (ample for any real grade) yet
 # fail-fasts a hung request 6x faster than the old 300s, which let stragglers
 # wedge a slot. Retry on timeout almost always lands a fast healthy grade.
-GRADER_TIMEOUT_SECONDS = 45.0
+DEFAULT_GRADER_TIMEOUT_SECONDS = 45.0
 
 
 class TaskTimeoutError(Exception):
@@ -213,11 +213,7 @@ class EvalRunner:
                     # judgement, no search loop), so it gets a much tighter cap
                     # than the agent — a grader exceeding GRADER_TIMEOUT is hung,
                     # not legitimately slow. Retryable like a transient failure.
-                    grader_timeout = (
-                        min(self.task_timeout, GRADER_TIMEOUT_SECONDS)
-                        if self.task_timeout is not None
-                        else None
-                    )
+                    grader_timeout = self._grader_timeout()
                     if grader_timeout is not None:
                         try:
                             grader_result = await asyncio.wait_for(grade_coro, timeout=grader_timeout)
@@ -250,7 +246,7 @@ class EvalRunner:
             except (TerminalHarnessResponseError, TaskTimeoutError) as error:
                 self._save_error(task_dir, attempt_dir, attempt_number, error)
                 failure_count += 1
-                attempt_number += 1
+                attempt_number = _next_attempt_number(task_dir)
                 retrying = failure_count < MAX_TASK_ATTEMPTS
                 retry_delay = _retry_delay_seconds(error)
                 self._log_retryable_failure(index, task.id, failure_count, retrying, error, retry_delay)
@@ -324,12 +320,20 @@ class EvalRunner:
 
     def _summary(self, tasks: list[TaskDatum]) -> dict[str, Any]:
         results = []
+        ungraded_count = 0
+        agent_failed_count = 0
         for index, task in enumerate(tasks, start=1):
-            result = _load_task_result(self._task_dir(index, task.id) / "result.json")
+            task_dir = self._task_dir(index, task.id)
+            result = _load_task_result(task_dir / "result.json")
             if result is not None:
                 results.append(result)
+            elif _is_ungraded_task(task_dir):
+                ungraded_count += 1
+            else:
+                agent_failed_count += 1
         selected_count = len(tasks)
         completed_count = len(results)
+        score_denominator = completed_count + agent_failed_count
         total_score = sum(result.score for result in results)
         metric_totals: dict[str, float] = {}
         metric_counts: dict[str, int] = {}
@@ -339,7 +343,7 @@ class EvalRunner:
                 metric_counts[key] = metric_counts.get(key, 0) + 1
         metrics = {key: value / metric_counts[key] for key, value in sorted(metric_totals.items())}
         metrics_with_failed = {
-            key: value / selected_count if selected_count else 0.0 for key, value in sorted(metric_totals.items())
+            key: value / score_denominator if score_denominator else 0.0 for key, value in sorted(metric_totals.items())
         }
         cost = combine_cost_details(self.harness.get_current_cost_details(), self.suite.grader.get_current_cost_details())
         summary = {
@@ -350,15 +354,17 @@ class EvalRunner:
             "selected_tasks": selected_count,
             "completed_tasks": completed_count,
             "total_correct": sum(result.grade_type == "CORRECT" for result in results),
-            "total_failed": selected_count - completed_count,
+            "total_failed": agent_failed_count,
+            "ungraded_tasks": ungraded_count,
+            "score_denominator": score_denominator,
             "failed_excluded": {
                 "score": total_score / completed_count if completed_count else 0.0,
                 "metrics": metrics,
             },
             "failed_as_zero": {
-                "score": total_score / selected_count if selected_count else 0.0,
+                "score": total_score / score_denominator if score_denominator else 0.0,
                 "metrics": metrics_with_failed,
-                "score_ci95": wilson_interval(total_score, selected_count),
+                "score_ci95": wilson_interval(total_score, score_denominator),
             },
             "cost": cost,
         }
@@ -441,6 +447,13 @@ class EvalRunner:
             summary["suite"],
         )
         LOGGER.info("Tasks succeeded=%s failed=%s", summary["completed_tasks"], summary["total_failed"])
+        ungraded = int(summary.get("ungraded_tasks") or 0)
+        if ungraded:
+            LOGGER.warning(
+                "%s task%s produced agent answers but were not graded; excluded from score denominators",
+                ungraded,
+                "" if ungraded == 1 else "s",
+            )
         if summary["total_failed"]:
             LOGGER.warning(
                 "%s task%s failed; failed tasks will be treated as zeroes in score computation",
@@ -459,6 +472,12 @@ class EvalRunner:
 
     def _task_dir(self, index: int, task_id: str) -> Path:
         return self.run_dir / "tasks" / f"{index:06d}-{_slug(task_id)}"
+
+    def _grader_timeout(self) -> float | None:
+        if self.task_timeout is None:
+            return None
+        grader_timeout = float(getattr(self.suite.grader, "timeout_seconds", DEFAULT_GRADER_TIMEOUT_SECONDS))
+        return min(self.task_timeout, grader_timeout)
 
 
 def _next_attempt_number(task_dir: Path) -> int:
@@ -558,6 +577,17 @@ def _load_harness_result(path: Path) -> Any | None:
 
 def _load_grader_result(path: Path) -> GraderResult | None:
     return None if not path.exists() else GraderResult.from_raw(read_json(path))
+
+
+def _is_ungraded_task(task_dir: Path) -> bool:
+    error = read_json_or_none(task_dir / "error.json")
+    if not isinstance(error, dict):
+        return False
+    if not any((attempt / "agent" / "result.json").exists() for attempt in (task_dir / "attempts").glob("*")):
+        return False
+    if any((attempt / "grader" / "result.json").exists() for attempt in (task_dir / "attempts").glob("*")):
+        return False
+    return True
 
 
 def wilson_interval(total_score: float, count: int, z: float = 1.96) -> dict[str, float] | None:

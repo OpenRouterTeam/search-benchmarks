@@ -258,7 +258,7 @@ class OpenRouterParams(HarnessParams):
     reasoning_effort: StrictStr | None = None
     max_output_tokens: PositiveInt | None = None
     web_search: Literal["off", "plugin", "server-tool"] = "server-tool"
-    max_results_per_search: PositiveInt = 10
+    max_results_per_search: PositiveInt | Literal["default"] = 10
     # Caps the openrouter:web_search agentic loop (server-tool route only).
     # Upstream clamps to MAX_SERVER_TOOL_CALLS=25 and defaults to 3 when the
     # field is absent. None = send nothing (loop still runs at upstream's 3).
@@ -314,6 +314,68 @@ class ExaParams(HarnessParams):
         return model
 
 
+class HermesParams(HarnessParams):
+    provider: StrictStr = "openrouter"
+    max_iterations: PositiveInt = 25
+    enabled_toolsets: tuple[StrictStr, ...] = ()
+    disabled_toolsets: tuple[StrictStr, ...] | None = None
+    skip_context_files: StrictBool = True
+    skip_memory: StrictBool = True
+    max_tokens: PositiveInt | None = None
+    reasoning_effort: StrictStr | None = None
+    web_search: Literal["off", "plugin", "server-tool"] = "server-tool"
+    max_results_per_search: PositiveInt | Literal["default"] = 10
+    max_tool_calls: PositiveInt | None = None
+    max_total_results: PositiveInt | None = None
+    search_backend: Literal["auto", "native", "exa", "firecrawl", "parallel", "perplexity"] | None = "exa"
+    search_context_size: Literal["low", "medium", "high"] | None = None
+    max_characters: PositiveInt | None = None
+    allowed_domains: tuple[StrictStr, ...] | None = None
+    excluded_domains: tuple[StrictStr, ...] = ()
+    web_fetch: StrictBool | None = None
+    fetch_engine: Literal["auto", "native", "exa", "openrouter", "firecrawl", "parallel"] | None = None
+    max_fetch_uses: PositiveInt | None = None
+    max_fetch_content_tokens: PositiveInt | None = None
+    provider_order: tuple[StrictStr, ...] | None = None
+    provider_ignore: tuple[StrictStr, ...] | None = None
+    provider_allow_fallbacks: StrictBool | None = None
+    providers_allowed: tuple[StrictStr, ...] | None = None
+
+    @field_validator("model")
+    @classmethod
+    def validate_model(cls, model: str) -> str:
+        if not model or model == "openrouter/":
+            raise ValueError("Hermes OpenRouter model must not be empty")
+        return model
+
+
+class PiParams(HarnessParams):
+    provider: StrictStr = "openrouter"
+    thinking_level: Literal["off", "minimal", "low", "medium", "high", "xhigh"] | None = None
+    tools: tuple[StrictStr, ...] | None = None
+    no_tools: Literal["all", "builtin"] | None = None
+    exclude_tools: tuple[StrictStr, ...] = ()
+    agent_dir: StrictStr | None = None
+    cwd: StrictStr | None = None
+    system_prompt: StrictStr | None = None
+    web_search: Literal["off", "plugin", "server-tool"] = "off"
+    max_results_per_search: PositiveInt | Literal["default"] = "default"
+    max_tool_calls: PositiveInt | None = None
+    max_total_results: PositiveInt | None = None
+    search_backend: Literal["auto", "native", "exa", "firecrawl", "parallel", "perplexity"] | None = "exa"
+    search_context_size: Literal["low", "medium", "high"] | None = None
+    max_characters: PositiveInt | None = None
+    allowed_domains: tuple[StrictStr, ...] | None = None
+    excluded_domains: tuple[StrictStr, ...] = ()
+
+    @field_validator("model")
+    @classmethod
+    def validate_model(cls, model: str) -> str:
+        if not model:
+            raise ValueError("Pi model must not be empty")
+        return model
+
+
 class AnthropicParams(HarnessParams):
     environment_config: dict[str, Any]
     tools: tuple[dict[str, Any], ...]
@@ -358,6 +420,16 @@ class ExaSystemConfig(_SystemConfig):
     params: ExaParams
 
 
+class HermesSystemConfig(_SystemConfig):
+    harness: Literal["hermes"]
+    params: HermesParams
+
+
+class PiSystemConfig(_SystemConfig):
+    harness: Literal["pi"]
+    params: PiParams
+
+
 class AnthropicSystemConfig(_SystemConfig):
     harness: Literal["anthropic"]
     params: AnthropicParams
@@ -370,6 +442,8 @@ SystemConfig: TypeAlias = Annotated[
     | OpenRouterLegacySystemConfig
     | ParallelSystemConfig
     | ExaSystemConfig
+    | HermesSystemConfig
+    | PiSystemConfig
     | AnthropicSystemConfig,
     Field(discriminator="harness"),
 ]

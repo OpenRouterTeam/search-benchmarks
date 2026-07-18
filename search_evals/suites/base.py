@@ -22,6 +22,8 @@ class NonRetryableGraderError(GraderError):
 
 
 class BaseGrader(ABC):
+    timeout_seconds: float = 45.0
+
     def __init__(self) -> None:
         self.costs = CostLedger()
 

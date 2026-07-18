@@ -384,7 +384,9 @@ class OpenRouterHarness(BaseHarness):
         )
 
     def _server_tool_def(self) -> dict[str, Any]:
-        parameters: dict[str, Any] = {"max_results": self.params.max_results_per_search}
+        parameters: dict[str, Any] = {}
+        if self.params.max_results_per_search != "default":
+            parameters["max_results"] = self.params.max_results_per_search
         if self.params.max_total_results is not None:
             parameters["max_total_results"] = self.params.max_total_results
         if self.params.search_backend is not None:
@@ -413,7 +415,9 @@ class OpenRouterHarness(BaseHarness):
         return tool
 
     def _plugin_def(self) -> dict[str, Any]:
-        plugin: dict[str, Any] = {"id": "web", "max_results": self.params.max_results_per_search}
+        plugin: dict[str, Any] = {"id": "web"}
+        if self.params.max_results_per_search != "default":
+            plugin["max_results"] = self.params.max_results_per_search
         if self.params.search_backend is not None:
             plugin["engine"] = self.params.search_backend
         if self.params.allowed_domains:
