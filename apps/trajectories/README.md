@@ -90,9 +90,10 @@ new chunks land.
 
 ## Styling
 
-The viewer uses a standalone neutral palette and a text monogram defined in
-`app.css` and `index.html`. It contains no external fonts, logos, or brand
-assets.
+The viewer uses the OpenRouter palette and wordmark defined locally in
+`app.css` and `index.html`. The SVG is inline so the localhost-only viewer needs
+no external asset requests and remains compatible with its strict content
+security policy.
 
 ## Layout
 

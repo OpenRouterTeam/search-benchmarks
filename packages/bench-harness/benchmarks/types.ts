@@ -14,6 +14,14 @@ export interface BenchmarkRunInput {
   readonly sessionId: string;
   readonly datasetRetry?: RetryConfig;
   readonly modelRetry?: RetryConfig;
+  /**
+   * The model's advertised output-token ceiling. Deliberately separate from
+   * `benchmarkConfig`: that object is persisted verbatim as the parquet
+   * `benchmark_config` column and re-derived from the spec at publish time to
+   * validate artifacts, so a runtime-resolved value must not enter it. The
+   * effective budget is recorded in the `request_body` column instead.
+   */
+  readonly maxOutputTokensCeiling?: number;
 }
 
 export interface BenchmarkPrimaryScore {

@@ -1,48 +1,60 @@
 :root {
   color-scheme: light;
-  --background: #f4f1e8;
-  --card: #fffdf7;
-  --card-head: #17201d08;
-  --card-hover: #17201d08;
-  --foreground: #17201d;
-  --muted-foreground: #40504a;
-  --faint: #718078;
-  --border: #17201d1f;
-  --border-strong: #17201d33;
-  --focus-shadow: 0 0 0 3px #d24f2a2b;
 
-  --rail: #17201d;
-  --rail-foreground: #f8f3e7;
-  --rail-muted: #f8f3e7a8;
-  --rail-faint: #f8f3e775;
-  --rail-border: #f8f3e71f;
-  --rail-border-strong: #f8f3e738;
-  --rail-subtle: #f8f3e708;
-  --rail-element: #f8f3e70f;
-  --rail-hover: #f8f3e714;
-  --rail-popover: #202b27;
+  /* OpenRouter brand: Ink, Cloud, Grape, Volt, Royal.
+     Light surfaces take the Grape accent; the dark rail takes Volt. */
+  --or-ink: #03080a;
+  --or-cloud: #fcfcfe;
+  --or-grape: #7624f4;
+  --or-volt: #c8ff00;
+  --or-royal: #035ade;
 
-  --accent: #d24f2a;
-  --accent-bg: #d24f2a14;
-  --accent-border: #d24f2a33;
-  --rail-accent: #f3b33d;
-  --rail-accent-bg: #f3b33d17;
-  --rail-accent-border: #f3b33d3d;
+  /* Light surfaces (detail pane) — slate ramp is Ink at opacity. */
+  --background: var(--or-cloud);
+  --card: #ffffff;
+  --card-head: #03080a05;
+  --card-hover: #03080a05;
+  --foreground: var(--or-ink);
+  --muted-foreground: #03080ab0;
+  --faint: #03080a70;
+  --border: #03080a14;
+  --border-strong: #03080a20;
+  --focus-shadow: 0 0 0 3px #7624f41f;
 
-  --positive: #168568;
-  --positive-text: #0d6b54;
-  --positive-bg: #16856817;
-  --positive-text-dark: #57d3ae;
-  --negative: #c8473d;
-  --negative-text: #9f3029;
-  --negative-bg: #c8473d17;
-  --negative-text-dark: #ff8176;
-  --warning: #b7791f;
-  --warning-text: #785015;
-  --warning-bg: #b7791f1a;
-  --warning-text-dark: #f3b33d;
-  --info: #3957d7;
-  --info-text: #2d48bb;
+  /* Dark surfaces (rail) */
+  --rail: var(--or-ink);
+  --rail-foreground: var(--or-cloud);
+  --rail-muted: #fcfcfea0;
+  --rail-faint: #fcfcfe70;
+  --rail-border: #fcfcfe14;
+  --rail-border-strong: #fcfcfe20;
+  --rail-subtle: #fcfcfe05;
+  --rail-element: #fcfcfe0a;
+  --rail-hover: #fcfcfe0a;
+  --rail-popover: #080d0f;
+
+  --accent: var(--or-grape);
+  --accent-bg: #7624f414;
+  --accent-border: #7624f433;
+  --rail-accent: var(--or-volt);
+  --rail-accent-bg: #c8ff0014;
+  --rail-accent-border: #c8ff0020;
+
+  /* Status (display + theme-tuned text) */
+  --positive: #00bf6f;
+  --positive-text: #007544;
+  --positive-bg: #00bf6f14;
+  --positive-text-dark: #34dfaa;
+  --negative: #ff2d55;
+  --negative-text: #bf0024;
+  --negative-bg: #ff2d5514;
+  --negative-text-dark: #ff2d55;
+  --warning: #e5a000;
+  --warning-text: #8a6000;
+  --warning-bg: #e5a00014;
+  --warning-text-dark: #ffab00;
+  --info: var(--or-royal);
+  --info-text: #0352c9;
 
   /* Radius scale */
   --radius-sm: 4px;
@@ -71,8 +83,8 @@
     'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
 
-  --shadow-card: 0 1px 2px #17201d0a, 0 12px 28px -20px #17201d52;
-  --shadow-popover: 0 18px 44px -18px #101714d9;
+  --shadow-card: 0 1px 2px #03080a0a, 0 12px 28px -20px #03080a52;
+  --shadow-popover: 0 18px 44px -18px #03080ad9;
 
   font-family: var(--font-sans);
   font-weight: var(--weight-body);
@@ -160,23 +172,20 @@ kbd {
   color: var(--rail-foreground);
 }
 
-.logo-mark {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border: 1px solid var(--rail-accent-border);
-  background: var(--rail-accent-bg);
-  color: var(--rail-accent);
-  border-radius: var(--radius-md);
-  font: 700 10px/1 var(--font-mono);
-  letter-spacing: 0.08em;
+.logo > svg {
+  display: block;
+  height: 17px;
+  width: auto;
 }
 
-.logo-name {
-  font-size: 13px;
-  font-weight: var(--weight-heading);
-  letter-spacing: -0.01em;
+/* Filled here rather than inline: the viewer serves a strict CSP with no
+   style-src 'unsafe-inline', so the SVG carries classes instead of fills. */
+.logo .logo-glyph {
+  fill: var(--rail-accent);
+}
+
+.logo .logo-word {
+  fill: var(--rail-foreground);
 }
 
 .product {
@@ -260,13 +269,13 @@ kbd {
 }
 
 .controls input::placeholder {
-  color: #f8f3e733;
+  color: #fcfcfe33;
 }
 
 .controls input:focus {
   outline: none;
   border-color: var(--rail-accent-border);
-  box-shadow: 0 0 0 3px #f3b33d17;
+  box-shadow: 0 0 0 3px #c8ff0017;
 }
 
 /* ---------- picker ---------- */
@@ -302,7 +311,7 @@ kbd {
 
 .picker-trigger[aria-expanded='true'] {
   border-color: var(--rail-accent-border);
-  box-shadow: 0 0 0 3px #f3b33d17;
+  box-shadow: 0 0 0 3px #c8ff0017;
 }
 
 .picker-value {
@@ -471,7 +480,7 @@ kbd {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #f8f3e729 transparent;
+  scrollbar-color: #fcfcfe29 transparent;
 }
 
 .list-scroll::-webkit-scrollbar {
@@ -479,7 +488,7 @@ kbd {
 }
 
 .list-scroll::-webkit-scrollbar-thumb {
-  background: #f8f3e729;
+  background: #fcfcfe29;
   border: 3px solid var(--rail);
   border-radius: var(--radius-full);
 }
@@ -495,7 +504,7 @@ kbd {
   top: 0;
   z-index: 1;
   padding: 10px 10px 6px;
-  background: linear-gradient(var(--rail) 70%, #17201d00);
+  background: linear-gradient(var(--rail) 70%, #03080a00);
   color: var(--rail-faint);
   font: var(--weight-overline) 9px/1.4 var(--font-mono);
   letter-spacing: 0.14em;
@@ -1187,7 +1196,7 @@ pre.json {
 .citation-url {
   grid-column: 1 / -1;
   font: 10.5px var(--font-mono);
-  color: #17201d80;
+  color: #03080a80;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

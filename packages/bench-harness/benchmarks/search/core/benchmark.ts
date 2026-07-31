@@ -15,6 +15,7 @@ import { effect, fail, mergeAll, provide, succeed } from 'effect/Layer';
 import { makeResponsesLayer, Responses } from '../../../responses-client';
 import { Scorer } from '../../../scorer';
 import { Solver } from '../../../solver';
+import { clampMaxOutputTokens } from '../../../model-limits';
 import { isSearchBenchmarkConfig } from '../../benchmark-config';
 
 export const DEFAULT_SEARCH_MAX_OUTPUT_TOKENS = 128_000;
@@ -33,17 +34,23 @@ export function searchSolverOptionsFromConfig({
   instructions,
   retry,
   maxOutputTokens = DEFAULT_SEARCH_MAX_OUTPUT_TOKENS,
+  maxOutputTokensCeiling,
 }: {
   readonly config: SearchBenchmarkConfig;
   readonly instructions: string;
   readonly retry?: RetryConfig;
   readonly maxOutputTokens?: number;
+  /** Advertised model ceiling; clamps the request so we never over-ask. */
+  readonly maxOutputTokensCeiling?: number;
 }): SearchSolverOptions {
   return {
     model: config.model,
     instructions,
     lane: config.lane,
-    maxOutputTokens: config.maxTokens ?? maxOutputTokens,
+    maxOutputTokens: clampMaxOutputTokens(
+      config.maxTokens ?? maxOutputTokens,
+      maxOutputTokensCeiling,
+    ),
     temperature: config.temperature ?? 0,
     ...(config.timeoutMs !== undefined && { timeoutMs: config.timeoutMs }),
     ...(config.reasoningEffort !== undefined && { reasoningEffort: config.reasoningEffort }),
@@ -77,6 +84,9 @@ export function makeSearchBenchmarkLayer(
     instructions: definition.instructions,
     retry: input.modelRetry,
     maxOutputTokens: definition.maxOutputTokens,
+    ...(input.maxOutputTokensCeiling !== undefined && {
+      maxOutputTokensCeiling: input.maxOutputTokensCeiling,
+    }),
   });
   const solverLayer = effect(Solver)(
     gen(function* () {

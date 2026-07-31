@@ -19,7 +19,9 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
+import { DEFAULT_SEARCH_MAX_OUTPUT_TOKENS } from './benchmarks/search/core/benchmark';
 import { Either } from './internal/either';
+import { clampMaxOutputTokens, resolveModelLimits } from './model-limits';
 import { asyncBufferFromBytes, readResultRows, summarizeChunkRows } from './parquet';
 import { makeProgressReporter } from './progress';
 import { publishedRunDirectory, publishRunBundle } from './publish-run';
@@ -322,10 +324,61 @@ function printPlan(spec: RunSpec, runId: string, concurrency: number): void {
   );
 }
 
+/*
+ * Clamp the output-token budget to what the model advertises. The lanes share
+ * one DEFAULT_SEARCH_MAX_OUTPUT_TOKENS constant, which is only safe while the
+ * model's ceiling is at least that large; over-asking is either silently
+ * clamped or rejected as a 400 that looks like transient retry noise. A
+ * catalogue miss leaves the default in place rather than failing the run.
+ *
+ * Resolved before the dry-run gate so a preview reports the real budget. The
+ * catalogue is a free public read and needs no key.
+ */
+async function resolveOutputTokenBudget(
+  spec: RunSpec,
+  apiKey?: string,
+): Promise<{ readonly ceiling: number | undefined; readonly effective: number }> {
+  const limits = await resolveModelLimits({
+    model: spec.model,
+    ...(apiKey !== undefined && { apiKey }),
+    ...(spec.inference.provider_only !== undefined && {
+      providerOnly: spec.inference.provider_only,
+    }),
+  });
+  const ceiling = limits?.maxCompletionTokens;
+  const requested = DEFAULT_SEARCH_MAX_OUTPUT_TOKENS;
+  const effective = clampMaxOutputTokens(requested, ceiling);
+
+  if (ceiling === undefined) {
+    process.stdout.write(
+      `Output tokens: ${requested} (no ceiling advertised for ${spec.model}; server decides)\n`,
+    );
+  } else {
+    const from = limits?.source === 'endpoints' ? 'narrowest routable endpoint' : 'model ceiling';
+    process.stdout.write(
+      `Output tokens: ${effective}${
+        effective === requested
+          ? ` (at ${from})`
+          : ` (clamped from ${requested} by ${from})`
+      }\n`,
+    );
+    /* Endpoint ceilings can differ by an order of magnitude, so show the spread
+     * that forced the clamp rather than just the winning number. */
+    if (limits?.source === 'endpoints' && limits.endpointCeilings !== undefined) {
+      const spread = limits.endpointCeilings
+        .map((item) => `${item.provider}=${item.ceiling}`)
+        .join(' · ');
+      process.stdout.write(`  endpoint ceilings: ${spread}\n`);
+    }
+  }
+  return { ceiling, effective };
+}
+
 async function run(args: CliArgs): Promise<void> {
   const specText = readFileSync(args.specPath, 'utf8');
   const spec = parseRunSpec(specText);
   printPlan(spec, args.runId, args.concurrency ?? spec.concurrency);
+  const { ceiling } = await resolveOutputTokenBudget(spec, process.env['OPENROUTER_API_KEY']);
   if (args.dryRun) {
     process.stdout.write('Dry run: no API calls made.\n');
     return;
@@ -452,6 +505,7 @@ async function run(args: CliArgs): Promise<void> {
             baseUrl: process.env['OPENROUTER_BASE_URL'],
           }),
           benchmarkConfig: config,
+          ...(ceiling !== undefined && { maxOutputTokensCeiling: ceiling }),
           epochs: spec.epochs,
           maxConcurrency: manifest.effectiveConcurrency,
           range,

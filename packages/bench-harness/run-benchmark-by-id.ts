@@ -32,6 +32,8 @@ export interface RunBenchmarkInput {
   readonly progressReporter?: ProgressReporterService;
   readonly abortSignal?: AbortSignal;
   readonly resultStore?: ResultStoreService;
+  /** Advertised model output-token ceiling; clamps the requested budget. */
+  readonly maxOutputTokensCeiling?: number;
 }
 
 export interface RunBenchmarkOutput {
@@ -55,6 +57,9 @@ export function runBenchmarkById(
     sessionId: input.sessionId,
     ...(input.datasetRetry !== undefined && { datasetRetry: input.datasetRetry }),
     ...(maxRetries !== undefined && { modelRetry: { maxRetries } }),
+    ...(input.maxOutputTokensCeiling !== undefined && {
+      maxOutputTokensCeiling: input.maxOutputTokensCeiling,
+    }),
   });
   const layers = mergeAll(
     benchmarkLayer.pipe(provideLayer(FetchHttpClient.layer)),
