@@ -592,6 +592,7 @@ function requestStrip(sample) {
       typeof lane.maxTotalResults === 'number' ? int(lane.maxTotalResults) : 'server default',
     ],
     ['temperature', typeof config.temperature === 'number' ? String(config.temperature) : null],
+    ['reasoning', typeof sample.reasoningEffort === 'string' ? sample.reasoningEffort : null],
     ['routing', routing],
     /* Provider is null unless the response reported one, so label it honestly. */
     ['served by', typeof search.provider === 'string' ? search.provider : null],

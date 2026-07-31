@@ -66,6 +66,7 @@ export interface TrajectorySampleDetail extends TrajectorySampleSummary {
   readonly metadata: unknown;
   readonly generationIds: unknown;
   readonly benchmarkConfig: unknown;
+  readonly reasoningEffort: string;
 }
 
 export interface TrajectoryIndex {
@@ -101,6 +102,29 @@ function record(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : undefined;
+}
+
+export function effectiveReasoningEffort(
+  benchmarkConfig: unknown,
+  requestBody: unknown,
+): string {
+  const config = record(benchmarkConfig);
+  const request = record(requestBody);
+  const requestReasoning = record(request?.['reasoning']);
+  const explicit = requestReasoning?.['effort'] ?? config?.['reasoningEffort'];
+  if (typeof explicit === 'string') {
+    return explicit;
+  }
+
+  const model =
+    typeof request?.['model'] === 'string'
+      ? request['model']
+      : typeof config?.['model'] === 'string'
+        ? config['model']
+        : undefined;
+  return model?.startsWith('openai/gpt-5.6') === true
+    ? 'medium (model default)'
+    : 'provider default';
 }
 
 function searchCallCounts(raw: string | null | undefined): {
@@ -452,6 +476,8 @@ export class TrajectoryStore {
       return undefined;
     }
     const { row } = detail;
+    const requestBody = parseJson(row.request_body);
+    const benchmarkConfig = parseJson(row.benchmark_config);
     return {
       ...summary,
       input: row.input,
@@ -460,11 +486,12 @@ export class TrajectoryStore {
       explanation: row.explanation,
       scorerTrajectory: parseJson(row.scorer_trajectory),
       responseItems: parseJson(row.response_items),
-      requestBody: parseJson(row.request_body),
+      requestBody,
       messages: parseJson(row.messages),
       metadata: parseJson(row.metadata),
       generationIds: parseJson(row.generation_ids),
-      benchmarkConfig: parseJson(row.benchmark_config),
+      benchmarkConfig,
+      reasoningEffort: effectiveReasoningEffort(benchmarkConfig, requestBody),
     };
   }
 

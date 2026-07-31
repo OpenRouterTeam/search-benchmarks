@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { ScoreValue } from '@openrouter/bench-harness/core';
 import { runResultToParquet } from '@openrouter/bench-harness/parquet';
 
-import { discoverParquetFiles, TrajectoryStore } from './reader';
+import { discoverParquetFiles, effectiveReasoningEffort, TrajectoryStore } from './reader';
 
 let temporary: string | undefined;
 
@@ -57,11 +57,11 @@ function parquetFixture(sampleId = 'browsecomp-0'): Buffer {
     },
     meta: {
       task: 'search_browsecomp',
-      model: 'model',
+      model: 'openai/gpt-5.6-sol',
       epochs: 1,
       benchmarkConfig: {
         benchmarkId: 'search_browsecomp',
-        model: 'model',
+        model: 'openai/gpt-5.6-sol',
         lane: { webSearch: 'server-tool', engine: 'auto' },
       },
     },
@@ -69,6 +69,21 @@ function parquetFixture(sampleId = 'browsecomp-0'): Buffer {
 }
 
 describe('trajectory reader', () => {
+  it('reports explicit reasoning effort and GPT-5.6 defaults', () => {
+    expect(
+      effectiveReasoningEffort(
+        { model: 'openai/gpt-5.6-sol', reasoningEffort: 'high' },
+        undefined,
+      ),
+    ).toBe('high');
+    expect(effectiveReasoningEffort({ model: 'openai/gpt-5.6-sol' }, undefined)).toBe(
+      'medium (model default)',
+    );
+    expect(effectiveReasoningEffort({ model: 'other/model' }, undefined)).toBe(
+      'provider default',
+    );
+  });
+
   it('loads the checked-in synthetic demo', async () => {
     const store = await TrajectoryStore.load(fileURLToPath(new URL('./demo.parquet', import.meta.url)));
     expect(store.index().samples).toHaveLength(1);
@@ -94,7 +109,12 @@ describe('trajectory reader', () => {
     });
     const summary = store.index().samples[0]!;
     expect(summary.id).toEndWith('::raw/browsecomp/000000-000001.parquet::browsecomp-0::0');
-    expect(store.sample(summary.id)).toMatchObject({ input: 'question', target: 'target', answer: 'answer' });
+    expect(store.sample(summary.id)).toMatchObject({
+      input: 'question',
+      target: 'target',
+      answer: 'answer',
+      reasoningEffort: 'medium (model default)',
+    });
     expect(store.findSamples('browsecomp-0')).toHaveLength(1);
   });
 
