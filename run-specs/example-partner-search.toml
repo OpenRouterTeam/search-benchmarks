@@ -1,0 +1,35 @@
+version = 1
+title = "Partner search benchmark smoke"
+description = "Five-task validation of the OpenRouter Responses search harness."
+model = "openai/gpt-5.4-nano"
+suites = ["browsecomp", "dsqa", "widesearch"]
+start = 0
+limit = 5
+epochs = 1
+concurrency = 5
+chunk_size = 1
+budget_usd = 2.00
+
+[inference]
+temperature = 0
+reasoning_effort = "high"
+max_retries = 6
+
+[search]
+surface = "server-tool"
+engine = "exa"
+max_agent_turns = 3
+max_results = 10
+max_total_results = 100
+
+# Measured rates are planning inputs, not token-price calculations. Refresh
+# these from a comparable dry run before each externally shared benchmark.
+[cost_estimates]
+browsecomp = 0.0454
+dsqa = 0.0688
+widesearch = 0.1616
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false

@@ -1,8 +1,0 @@
-{
-  "name": "search-benchmarks-harnesses",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.3"
-  }
-}

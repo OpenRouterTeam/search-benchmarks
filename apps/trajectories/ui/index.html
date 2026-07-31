@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trajectory Reader</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <header class="sidebar-head">
+          <div class="brand">
+            <span class="logo">
+              <span class="logo-mark" aria-hidden="true">SB</span>
+              <span class="logo-name">Search Bench</span>
+            </span>
+            <span class="eyebrow">Local inspector</span>
+          </div>
+          <div class="product">
+            <strong>Trajectory Reader</strong>
+            <button id="run-overview" class="ghost-button" type="button">Run overview</button>
+          </div>
+        </header>
+
+        <p class="notice">
+          Internal raw view. Inputs, targets, and judge output can contain benchmark ground truth.
+        </p>
+
+        <div class="controls">
+          <div id="run-picker" class="picker" data-variant="primary"></div>
+          <div class="field">
+            <input id="query" type="search" placeholder="Filter id or answer" autocomplete="off" />
+            <kbd>/</kbd>
+          </div>
+          <div id="suite-picker" class="picker"></div>
+          <div class="chips" id="score-filter" role="group" aria-label="Filter by score">
+            <button type="button" class="chip active" data-score="">All</button>
+            <button type="button" class="chip" data-score="C">Correct</button>
+            <button type="button" class="chip" data-score="I">Incorrect</button>
+            <button type="button" class="chip" data-score="S">Skipped</button>
+          </div>
+        </div>
+
+        <div class="list-meta">
+          <span id="list-count">Loading</span>
+          <span id="list-accuracy"></span>
+        </div>
+
+        <div class="list-scroll">
+          <ol id="sample-list" class="sample-list"></ol>
+        </div>
+
+        <footer class="sidebar-foot">
+          <span><kbd>j</kbd><kbd>k</kbd> move</span>
+          <span><kbd>1</kbd>–<kbd>4</kbd> tabs</span>
+          <span><kbd>g</kbd> run</span>
+          <button id="reload" class="ghost-button" type="button" title="Reload chunk files">↻</button>
+          <span id="updated" class="updated">live</span>
+        </footer>
+      </aside>
+
+      <main class="detail">
+        <div id="detail-root" class="detail-root">
+          <div class="placeholder">Loading trajectories…</div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
