@@ -1,0 +1,19 @@
+{
+  "name": "@openrouter/search-trajectory-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cli": "bun run cli.ts",
+    "generate-demo": "bun run generate-demo.ts",
+    "test": "bun test",
+    "typecheck": "tsgo --noEmit",
+    "web": "bun run web.ts"
+  },
+  "dependencies": {
+    "@openrouter/bench-harness": "file:../../packages/bench-harness"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2"
+  }
+}

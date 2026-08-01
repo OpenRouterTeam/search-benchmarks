@@ -1,140 +1,121 @@
-# search_evals
+# OpenRouter Search Benchmarks
 
-An OpenRouter-first framework for evaluating search-capable model systems. It
-runs a model and search configuration against BrowseComp, Humanity's Last Exam,
-DeepSearchQA, and WideSearch, then produces a self-contained report with
-quality, cost, latency, confidence intervals, and run metadata.
+Standalone TypeScript tooling for running and inspecting OpenRouter search
+benchmarks. The harness supports BrowseComp, DeepSearchQA, and WideSearch over
+the public OpenRouter Responses API and server tools.
 
-This repository is based on Perplexity's
-[`search_evals`](https://github.com/perplexityai/search_evals) project. The fork
-adds OpenRouter search surfaces, engine selection, resumable sampled sweeps,
-provider-reported cost tracking, and Pi agent support.
+## Open The Trajectory Viewer
 
-## Latest Report
+```bash
+cd apps/trajectories
+bun install
+bun run web -- --input demo.parquet --open
+```
 
-The latest report evaluates **GLM 5.2 Nitro through the Pi agent** across Exa,
-Parallel, and Perplexity. It compares the plugin, 1-turn, 5-turn, and 25-turn
-search surfaces on 100 seeded tasks from each suite.
+The checked-in `demo.parquet` is synthetic. To inspect a real run, replace it
+with a Parquet file or run directory such as `../../runs/ts/<run-id>`.
 
-[Open the interactive HTML report](reports/latest/benchmark-report.html) or
-[view the full PNG](reports/latest/benchmark-report.png).
+## Add A Search Engine Layer
 
-[![Pi + GLM 5.2 benchmark report](reports/latest/benchmark-report-preview.png)](reports/latest/benchmark-report.png)
+Branch from the reusable harness, keep engine-specific specs under
+`run-specs/<engine>/`, and commit reviewed bundles under
+`published-runs/<engine>/`:
 
-The matrix contains 48 benchmark cells and 4,793 graded tasks out of 4,800.
-At the 25-turn depth, Exa has the highest point estimate on BrowseComp (0.59),
-HLE (0.50), and WideSearch (0.732 F1), while Perplexity has the highest point
-estimate on DeepSearchQA (0.67). The report includes confidence intervals; the
-leading engine estimates overlap on these 100-task samples.
+```bash
+git switch -c <engine> ayush/harness-port
+cd packages/bench-harness
+bun run bench -- --spec ../../run-specs/<engine>/<spec>.toml --run-id <run-id> --dry-run
+```
 
-These are **web-search-only** results. Page fetch and code tools are disabled,
-so the absolute scores should not be compared directly with full multi-tool
-agent benchmarks. Use the report to compare search engines and search depth
-under the same harness.
+The spec's `search.engine` automatically selects
+`published-runs/<engine>/<run-id>/` for generated bundles. The `perplexity`
+branch is the first engine layer and can be used as the stack example.
+
+## Repository
+
+- [`packages/bench-harness`](packages/bench-harness/README.md) contains the
+  benchmark runner, datasets, graders, resumable Parquet persistence, and
+  redacted publication tooling.
+- [`apps/trajectories`](apps/trajectories/README.md) provides terminal and local
+  web interfaces for inspecting raw Parquet trajectories.
+- [`run-specs`](run-specs/README.md) contains reviewable TOML configurations,
+  grouped by search engine, for reproducible runs.
+- [`published-runs`](published-runs/README.md) contains intentionally tracked,
+  redacted result bundles grouped by search engine.
+
+The retired Python runner, historical sweep configurations, reports, and raw
+run artifacts remain available in Git history.
 
 ## Setup
 
 Requirements:
 
-- Python 3.12+
-- [`uv`](https://docs.astral.sh/uv/)
-- An `OPENROUTER_API_KEY`
-- Node.js and npm when using the Pi harness
-- Hugging Face access to [`cais/hle`](https://huggingface.co/datasets/cais/hle)
-  when running HLE
+- [Bun](https://bun.sh/)
+- An `OPENROUTER_API_KEY` for paid benchmark execution
+- A Hugging Face token when a dataset requires authenticated access
 
 ```bash
-uv sync
-npm install                         # Pi harness only
-export OPENROUTER_API_KEY=...
-uv run python -m search_evals download-datasets
-uv run python -m search_evals list
+cd packages/bench-harness
+bun install
+bun run typecheck
+bun test
 ```
 
-## Run An Evaluation
-
-Systems are defined in [`systems.toml`](systems.toml). A system combines a
-model, harness, search surface, engine, and search budget. For example:
-
-```toml
-[systems.my-pi-search-system]
-harness = "pi"
-model = "z-ai/glm-5.2:nitro"
-provider = "openrouter"
-thinking_level = "high"
-no_tools = "all"
-web_search = "server-tool"
-search_backend = "exa"
-max_results_per_search = "default"
-max_tool_calls = 5
-```
-
-Start with a five-task smoke test:
+The trajectory viewer has its own checks:
 
 ```bash
-uv run python -m search_evals run \
-  --system my-pi-search-system \
-  --suite browsecomp \
-  --limit 5
+cd apps/trajectories
+bun run typecheck
+bun test
 ```
 
-For representative comparisons, use seeded random samples rather than
-`--limit`. Samples are nested: increasing the sample size with the same seed
-reuses completed tasks and pays only for the additional work.
+## Run A Benchmark
+
+Start with a committed TOML spec and a free dry run:
 
 ```bash
-uv run python -m search_evals run \
-  --system my-pi-search-system \
-  --suite browsecomp \
-  --sample 100 \
-  --sample-seed 0
-```
-
-All evaluation and grading commands make paid API calls. Review the dry-run
-plan and cost estimate before starting a matrix sweep:
-
-```bash
-uv run python scripts/benchmark_report.py sweep \
-  --spec benchmarks/pi-glm-5-2-ladder-defaults.toml \
+cd packages/bench-harness
+bun run bench -- \
+  --spec ../../run-specs/example-partner-search.toml \
+  --run-id partner-search-smoke \
   --dry-run
 ```
 
-Remove `--dry-run` only after confirming the scope and budget.
-
-## Reports
-
-Run artifacts are resumable directories under `runs/`. Generate an HTML and
-PNG report from an existing benchmark without making API calls:
+Every non-dry run makes paid API calls and requires an explicit planning
+ceiling. Do not start one without approving its scope and cost:
 
 ```bash
-RUN_SUFFIX=my-benchmark-v1
-uv run python scripts/benchmark_report.py report \
-  --bench "$RUN_SUFFIX" \
-  --out "reports/$RUN_SUFFIX" \
-  --png
+set -a && source ../../.env && set +a
+bun run bench -- \
+  --spec ../../run-specs/example-partner-search.toml \
+  --run-id partner-search-smoke \
+  --approve-cost-usd 2.00
 ```
 
-Useful commands:
+Raw chunks and event logs are written under `runs/ts/<run-id>/` and ignored by
+Git. Completed chunks are checksum-validated on resume. After every chunk, the
+runner writes a reviewable redacted bundle under
+`published-runs/<engine>/<run-id>/`.
+
+## Inspect Trajectories
 
 ```bash
-uv run python scripts/benchmark_report.py status
-uv run python scripts/benchmark_report.py debug
-uv run python -m pytest tests/ -q
+cd apps/trajectories
+bun run cli -- --input ../../runs/ts/<run-id>
+bun run web -- --input ../../runs/ts/<run-id> --open
 ```
+
+Raw trajectories contain benchmark inputs, targets, model answers, and grader
+details. Keep the viewer local and share only reviewed `published-runs/`
+bundles.
 
 ## Scoring
 
 | Suite | Primary metric |
 | --- | --- |
 | BrowseComp | Accuracy |
-| HLE | Accuracy |
 | DeepSearchQA | Accuracy |
 | WideSearch | F1 by item |
 
-Headline scores count exhausted tasks as zero. The report also shows the score
-excluding failed tasks, 95% confidence intervals, provider-reported cost, and
-agent latency. Compared rows use the same dataset fingerprint and the default
-grader, `openai/gpt-4.1` through OpenRouter.
-
 See [`THIRD_PARTY_DATASETS.md`](THIRD_PARTY_DATASETS.md) for dataset sources and
-licenses. This project is released under the [MIT License](LICENSE).
+licenses. Runner code is released under the [MIT License](LICENSE).

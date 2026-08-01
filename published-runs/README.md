@@ -1,0 +1,19 @@
+# Published Runs
+
+This directory contains intentionally tracked, redacted benchmark bundles
+grouped by search engine under `<engine>/<run-id>/`. Each bundle is
+generated from raw, gitignored artifacts under `runs/ts/<run-id>/`.
+
+A published bundle contains the resolved run configuration, immutable dataset
+and prompt provenance, aggregate metrics, raw-artifact checksums, a self-contained
+HTML report, and redacted search trajectories. It excludes benchmark targets,
+judge details, raw inputs, model answers, search queries, session IDs, and
+generation IDs by default.
+
+Citation records retain only each source's URL origin and hostname. Paths,
+query parameters, fragments, and upstream titles are removed because they can
+encode search queries or benchmark text.
+
+Do not copy raw Parquet files into this directory. Review every generated bundle
+before committing or sharing it; generated model text, citations, or optional
+fields can still contain sensitive or benchmark-reconstructing content.

@@ -1,20 +1,7 @@
-__pycache__/
-*.py[cod]
-*.egg-info/
 .DS_Store
-.venv/
 .env
 node_modules/
 build/
 dist/
-.pytest_cache/
 runs/
-reports/*
-# Tracked reports: latest (the README preview target) plus the three headline
-# benchmark ladders. Everything else under reports/ stays scratch.
-!reports/latest/
-!reports/glm-v1/
-!reports/nemotron-v1/
-!reports/nano-v1/
-_superseded_runs/
-analysis/
+*.log
