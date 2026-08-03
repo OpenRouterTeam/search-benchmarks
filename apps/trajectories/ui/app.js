@@ -1062,9 +1062,7 @@ async function init() {
   });
 
   renderList();
-  const first = visibleSamples()[0];
-  if (first) selectSample(first.id);
-  else renderRunOverview();
+  renderRunOverview();
   markUpdated(true);
 
   /* Poll so a running benchmark streams into the reader. */
