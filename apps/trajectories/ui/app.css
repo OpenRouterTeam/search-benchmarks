@@ -920,7 +920,7 @@ kbd {
   display: grid;
   gap: 16px;
   min-width: 0;
-  max-width: 1120px;
+  width: 100%;
 }
 
 .columns {
@@ -955,6 +955,24 @@ kbd {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted-foreground);
+}
+
+.card-select {
+  min-width: 0;
+  max-width: 180px;
+  border: 1px solid var(--border-strong);
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: var(--radius-md);
+  padding: 5px 26px 5px 8px;
+  font: var(--weight-button) 10px/1 var(--font-mono);
+  cursor: pointer;
+}
+
+.card-select:focus-visible {
+  outline: none;
+  border-color: var(--accent-border);
+  box-shadow: var(--focus-shadow);
 }
 
 .copy-button {
@@ -1252,7 +1270,7 @@ pre.json {
 
 .kv-row {
   display: grid;
-  grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   font: var(--text-overline) var(--font-mono);
   align-items: baseline;
@@ -1269,7 +1287,7 @@ pre.json {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -1371,5 +1389,33 @@ table.chunks tr:last-child td {
 
   .detail-head {
     padding: 16px 18px 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .detail-body {
+    padding-inline: 12px;
+  }
+
+  .detail-head {
+    padding-inline: 12px;
+  }
+
+  .card-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .card-select {
+    max-width: 100%;
+  }
+
+  .stat {
+    padding: 15px 16px;
+  }
+
+  table.chunks th,
+  table.chunks td {
+    padding-inline: 12px;
   }
 }

@@ -7,6 +7,7 @@ const state = {
   run: '',
   suite: '',
   score: '',
+  overviewRuns: new Map(),
 };
 
 const byId = (id) => document.getElementById(id);
@@ -137,14 +138,14 @@ function primaryMetricLabel(extraScores) {
   return null;
 }
 
-function kvCard(title, rows) {
+function kvCard(title, rows, action) {
   const list = el('dl', { class: 'kv' });
   for (const [key, value] of rows) {
     list.append(
       el('div', { class: 'kv-row' }, [el('dt', { text: key }), el('dd', { text: String(value) })]),
     );
   }
-  return card(title, list);
+  return card(title, list, action);
 }
 
 function metricsCard(title, metrics) {
@@ -719,6 +720,22 @@ async function selectSample(id) {
 
 /* ---------------- run overview ---------------- */
 
+function turnCount(runId) {
+  const match = runId.match(/(?:^|-)(\d+)turn(?:-|$)/u);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
+function runOptionLabel(runId) {
+  const turns = turnCount(runId);
+  return Number.isFinite(turns) ? `${turns} ${turns === 1 ? 'turn' : 'turns'}` : runId;
+}
+
+function orderedRuns(runs) {
+  return [...runs].sort(
+    (left, right) => turnCount(left.id) - turnCount(right.id) || left.id.localeCompare(right.id),
+  );
+}
+
 function runsTable() {
   const table = el('table', { class: 'chunks' });
   table.append(
@@ -740,7 +757,7 @@ function runsTable() {
     ]),
   );
   const body = el('tbody');
-  for (const run of state.index.runs) {
+  for (const run of orderedRuns(state.index.runs)) {
     body.append(
       el('tr', { style: 'cursor:pointer', onclick: () => applyRun(run.id) }, [
         el('td', { text: run.id }),
@@ -770,7 +787,8 @@ function renderRunOverview() {
 
   const suites = new Map();
   for (const file of files) {
-    const current = suites.get(file.task) ?? {
+    const suiteRuns = suites.get(file.task) ?? new Map();
+    const current = suiteRuns.get(file.run) ?? {
       questions: 0,
       correct: 0,
       cost: 0,
@@ -793,7 +811,8 @@ function renderRunOverview() {
     /* Name the metric the grader actually reported rather than calling every
      * suite "accuracy" — widesearch's is f1_by_item. */
     current.primaryLabel ??= primaryMetricLabel(file.extraScores);
-    suites.set(file.task, current);
+    suiteRuns.set(file.run, current);
+    suites.set(file.task, suiteRuns);
   }
 
   const totalCost = files.reduce((sum, file) => sum + file.totalCost, 0);
@@ -824,7 +843,14 @@ function renderRunOverview() {
   ]);
 
   const suiteCards = el('div', { class: 'columns' });
-  for (const [task, value] of suites) {
+  for (const [task, suiteRuns] of suites) {
+    const options = [...suiteRuns].sort(
+      ([left], [right]) => turnCount(left) - turnCount(right) || left.localeCompare(right),
+    );
+    const preferredRun = state.overviewRuns.get(task);
+    const [selectedRun, value] = options.find(([runId]) => runId === preferredRun) ?? options[0];
+    state.overviewRuns.set(task, selectedRun);
+
     /* On widesearch every cell must be exact to score C, so the strict rate
      * floors out near 11% while item F1 moves — lead with the real metric. */
     const exactLabel = value.primaryLabel === null ? 'accuracy' : 'all cells exact';
@@ -841,7 +867,30 @@ function renderRunOverview() {
         (value.primary / value.primaryWeight).toFixed(4),
       ]);
     }
-    suiteCards.append(kvCard(task.replace(/^search_/u, ''), rows));
+    const benchmark = task.replace(/^search_/u, '');
+    const selector =
+      !scoped && options.length > 1
+        ? el(
+            'select',
+            {
+              class: 'card-select',
+              'aria-label': `${benchmark} result run`,
+              title: selectedRun,
+              onchange: (event) => {
+                state.overviewRuns.set(task, event.currentTarget.value);
+                renderRunOverview();
+              },
+            },
+            options.map(([runId]) =>
+              el('option', {
+                value: runId,
+                text: runOptionLabel(runId),
+                selected: runId === selectedRun,
+              }),
+            ),
+          )
+        : undefined;
+    suiteCards.append(kvCard(benchmark, rows, selector));
   }
 
   const chunkTable = el('table', { class: 'chunks' });
@@ -938,7 +987,7 @@ function populateSuites() {
     counts.set(sample.task, (counts.get(sample.task) ?? 0) + 1);
   }
   const options = [
-    { value: '', label: 'All suites', meta: `${[...counts.values()].reduce((a, b) => a + b, 0)} rows` },
+    { value: '', label: 'All benchmarks', meta: `${[...counts.values()].reduce((a, b) => a + b, 0)} rows` },
     ...[...counts.entries()].map(([task, rows]) => ({
       value: task,
       label: task.replace(/^search_/u, ''),
