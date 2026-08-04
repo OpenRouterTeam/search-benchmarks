@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+    .head { fill: #596273; font-size: 14px; font-weight: 650; letter-spacing: .45px; }
+    .engine { fill: #111827; font-size: 18px; font-weight: 700; }
+    .cell { fill: #273142; font-size: 17px; font-weight: 520; }
+    .best { fill: #047857; font-weight: 720; }
+    .cheap { fill: #9a5800; font-weight: 720; }
+  </style>
+
+  <rect width="1400" height="760" fill="#ffffff"/>
+  <rect x="36" y="30" width="1328" height="672" rx="10" fill="#ffffff" stroke="#d9dee7"/>
+  <path d="M46 30h1308a10 10 0 0 1 10 10v54H36V40a10 10 0 0 1 10-10Z" fill="#f5f7fa"/>
+
+  <text x="58" y="69" class="head">ENGINE</text>
+  <text x="269" y="69" text-anchor="middle" class="head">TURNS</text>
+  <text x="406" y="69" text-anchor="middle" class="head">BROWSECOMP</text>
+  <text x="552" y="69" text-anchor="middle" class="head">DSQA</text>
+  <text x="706" y="69" text-anchor="middle" class="head">WS ITEM F1</text>
+  <text x="864" y="69" text-anchor="middle" class="head">WS STRICT</text>
+  <text x="1052" y="69" text-anchor="middle" class="head">TOTAL COST</text>
+  <text x="1242" y="69" text-anchor="middle" class="head">COST / TASK</text>
+
+  <rect x="37" y="94" width="1326" height="204" fill="#fbfaff"/>
+  <rect x="37" y="298" width="1326" height="204" fill="#f9fcfc"/>
+  <rect x="37" y="502" width="1326" height="199" rx="0 0 9 9" fill="#fffdf9"/>
+
+  <line x1="221" y1="30" x2="221" y2="702" stroke="#e1e5eb"/>
+  <line x1="317" y1="30" x2="317" y2="702" stroke="#e1e5eb"/>
+  <line x1="487" y1="30" x2="487" y2="702" stroke="#e1e5eb"/>
+  <line x1="617" y1="30" x2="617" y2="702" stroke="#e1e5eb"/>
+  <line x1="795" y1="30" x2="795" y2="702" stroke="#e1e5eb"/>
+  <line x1="936" y1="30" x2="936" y2="702" stroke="#e1e5eb"/>
+  <line x1="1163" y1="30" x2="1163" y2="702" stroke="#e1e5eb"/>
+
+  <line x1="36" y1="94" x2="1364" y2="94" stroke="#d9dee7"/>
+  <line x1="221" y1="162" x2="1364" y2="162" stroke="#e8ebf0"/>
+  <line x1="221" y1="230" x2="1364" y2="230" stroke="#e8ebf0"/>
+  <line x1="36" y1="298" x2="1364" y2="298" stroke="#d9dee7"/>
+  <line x1="221" y1="366" x2="1364" y2="366" stroke="#e8ebf0"/>
+  <line x1="221" y1="434" x2="1364" y2="434" stroke="#e8ebf0"/>
+  <line x1="36" y1="502" x2="1364" y2="502" stroke="#d9dee7"/>
+  <line x1="221" y1="570" x2="1364" y2="570" stroke="#e8ebf0"/>
+  <line x1="221" y1="638" x2="1364" y2="638" stroke="#e8ebf0"/>
+
+  <text x="58" y="207" class="engine">Perplexity</text>
+  <text x="58" y="411" class="engine">Exa</text>
+  <text x="58" y="615" class="engine">Parallel</text>
+
+  <g class="cell" text-anchor="middle">
+    <text x="269" y="136">1</text><text x="406" y="136">0.330</text><text x="552" y="136">0.460</text><text x="706" y="136">0.673</text><text x="864" y="136">0.110</text><text x="1052" y="136">$33.74</text><text x="1242" y="136">$0.112</text>
+    <text x="269" y="204">5</text><text x="406" y="204">0.610</text><text x="552" y="204">0.550</text><text x="706" y="204">0.689</text><text x="864" y="204">0.110</text><text x="1052" y="204">$58.83</text><text x="1242" y="204">$0.196</text>
+    <text x="269" y="272">25</text><text x="406" y="272" class="best">0.790</text><text x="552" y="272">0.700</text><text x="706" y="272" class="best">0.719</text><text x="864" y="272">0.110</text><text x="1052" y="272">$123.59</text><text x="1242" y="272">$0.412</text>
+
+    <text x="269" y="340">1</text><text x="406" y="340">0.290</text><text x="552" y="340">0.480</text><text x="706" y="340">0.683</text><text x="864" y="340">0.100</text><text x="1052" y="340">$36.01</text><text x="1242" y="340">$0.120</text>
+    <text x="269" y="408">5</text><text x="406" y="408">0.580</text><text x="552" y="408">0.650</text><text x="706" y="408">0.688</text><text x="864" y="408">0.110</text><text x="1052" y="408">$73.17</text><text x="1242" y="408">$0.244</text>
+    <text x="269" y="476">25</text><text x="406" y="476">0.730</text><text x="552" y="476" class="best">0.750</text><text x="706" y="476" class="best">0.719</text><text x="864" y="476" class="best">0.140</text><text x="1052" y="476">$167.31</text><text x="1242" y="476">$0.558</text>
+
+    <text x="269" y="544">1</text><text x="406" y="544">0.260</text><text x="552" y="544">0.340</text><text x="706" y="544">0.663</text><text x="864" y="544">0.090</text><text x="1052" y="544" class="cheap">$33.29</text><text x="1242" y="544" class="cheap">$0.111</text>
+    <text x="269" y="612">5</text><text x="406" y="612">0.450</text><text x="552" y="612">0.520</text><text x="706" y="612">0.659</text><text x="864" y="612">0.090</text><text x="1052" y="612">$53.97</text><text x="1242" y="612">$0.180</text>
+    <text x="269" y="680">25</text><text x="406" y="680">0.650</text><text x="552" y="680">0.640</text><text x="706" y="680">0.689</text><text x="864" y="680">0.080</text><text x="1052" y="680">$116.07</text><text x="1242" y="680">$0.387</text>
+  </g>
+</svg>
