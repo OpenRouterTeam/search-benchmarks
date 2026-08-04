@@ -300,11 +300,15 @@ function renderList() {
   const correct = samples.filter((sample) => sample.score === 'C').length;
   byId('list-count').textContent = `${samples.length} rows`;
   /* WideSearch is graded per table cell, so strict correctness understates it
-   * badly; f1_by_item is the suite's primary metric. Show both when present. */
+   * badly; f1_by_item is its primary metric. Only lead with it when every graded
+   * row in view carries one — across mixed benchmarks the mean would be drawn
+   * from a subset while the row count covers everything, which reads as a claim
+   * about all of them. */
   const scored = samples.filter((sample) => typeof sample.itemF1 === 'number');
-  const meanItemF1 = scored.length
-    ? scored.reduce((total, sample) => total + sample.itemF1, 0) / scored.length
-    : null;
+  const meanItemF1 =
+    scored.length > 0 && scored.length === graded.length
+      ? scored.reduce((total, sample) => total + sample.itemF1, 0) / scored.length
+      : null;
   const strict = graded.length ? `${correct}/${graded.length} correct` : 'no graded rows';
   const accuracy = byId('list-accuracy');
   accuracy.classList.toggle('leads-f1', meanItemF1 !== null);

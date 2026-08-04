@@ -40,7 +40,7 @@ export interface SearchRequestOptions {
   readonly maxOutputTokens?: number;
   readonly temperature?: number;
   readonly reasoningEffort?: ReasoningEffort;
-  /** Provider routing sort; suppressed when an endpoint pin is in effect. */
+  /** Provider routing preference, e.g. price or throughput. */
   readonly sort?: ProviderSort;
   readonly providerOrder?: readonly string[];
   readonly providerOnly?: readonly string[];

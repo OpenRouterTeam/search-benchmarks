@@ -11,7 +11,7 @@ import { z } from '../../../internal/zod';
 
 /*
  * Search-lane config shared by the search-benchmark family. Engine enums and
- * server-side hard caps come from `internal/enums`; `auto`/`native` are
+ * observed API limits come from `internal/enums`; `auto`/`native` are
  * server-tool-only values layered on top.
  */
 

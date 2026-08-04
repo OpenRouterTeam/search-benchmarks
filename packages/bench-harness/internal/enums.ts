@@ -31,9 +31,10 @@ export enum WebSearchEngine {
 export const MAX_SERVER_TOOL_CALLS = 30;
 
 /**
- * Server defaults applied when the corresponding web-search parameter is
- * omitted. Mirrored here so a caller can reason about the effective search
- * budget locally; the server remains the source of truth.
+ * Effective limits observed from the public web-search API when the
+ * corresponding parameter is omitted, recorded so a caller can reason about its
+ * search budget before sending a request. These are observations, not a
+ * contract: the API is the source of truth and may change.
  */
 export const WEB_SEARCH_DEFAULT_MAX_RESULTS = 5;
 export const WEB_SEARCH_DEFAULT_MAX_TOTAL_RESULTS = 50;
