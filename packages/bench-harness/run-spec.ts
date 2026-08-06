@@ -16,7 +16,11 @@ import {
   BROWSECOMP_URL,
 } from './benchmarks/search/browsecomp/dataset';
 import { DSQA_DATASET_ROWS, DSQA_DATASET_SHA256, DSQA_DATASET_URL } from './benchmarks/search/dsqa/dataset';
-import { DSQA_JUDGE_CONFIG } from './benchmarks/search/dsqa/grader';
+import {
+  DSQA_GRADER_PROMPT,
+  DSQA_GRADER_PROMPT_SOURCE,
+  DSQA_JUDGE_CONFIG,
+} from './benchmarks/search/dsqa/grader';
 import { DEEP_RESEARCH_INSTRUCTIONS, WIDESEARCH_INSTRUCTIONS } from './benchmarks/search/core/prompts';
 import { ANSWER_EQUIVALENCE_JUDGE_CONFIG } from './benchmarks/search/grading/answer-equivalence';
 import {
@@ -108,6 +112,8 @@ export interface DatasetContract {
   readonly rows: number;
   readonly promptSha256: string;
   readonly judgeModel: string;
+  readonly judgePromptSource?: string;
+  readonly judgePromptSha256?: string;
   readonly gradingReferenceDate?: string;
 }
 
@@ -127,6 +133,8 @@ export const DATASET_CONTRACTS: Readonly<Record<SuiteName, DatasetContract>> = {
     rows: DSQA_DATASET_ROWS,
     promptSha256: sha256(DEEP_RESEARCH_INSTRUCTIONS),
     judgeModel: DSQA_JUDGE_CONFIG.judgeModel,
+    judgePromptSource: DSQA_GRADER_PROMPT_SOURCE,
+    judgePromptSha256: sha256(DSQA_GRADER_PROMPT),
   },
   widesearch: {
     benchmarkId: 'search_widesearch',

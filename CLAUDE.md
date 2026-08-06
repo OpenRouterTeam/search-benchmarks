@@ -42,6 +42,7 @@ downloads may use `HF_TOKEN`.
   `published-runs/<engine>/` are the only result artifacts intended for version
   control.
 - Review every published bundle before sharing it.
+- DeepSearchQA's headline metric is macro `f1_score`, not Fully Correct accuracy.
 - WideSearch's headline metric is `f1_by_item`, not strict all-cells accuracy.
 - Keep benchmark prompts, graders, dataset revisions, and score calculations
   stable unless a change is documented and regression-tested.

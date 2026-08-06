@@ -43,7 +43,7 @@ const PUBLISHED_FILES = [
 
 interface SuiteSummary {
   readonly benchmarkId: string;
-  readonly primaryMetric: 'accuracy' | 'f1_by_item';
+  readonly primaryMetric: 'accuracy' | 'f1_by_item' | 'f1_score';
   readonly score: number;
   readonly accuracy: number;
   readonly selectedTasks: number;
@@ -243,6 +243,13 @@ async function summarizeSuite(
       weight: chunk.summary.primaryScore?.weight ?? chunk.summary.totalQuestions,
     })),
   );
+  const chunksWithPrimaryScore = chunks.filter(
+    (chunk) => chunk.summary.primaryScore !== undefined,
+  ).length;
+  if (suite === 'dsqa' && chunksWithPrimaryScore > 0 && chunksWithPrimaryScore < chunks.length) {
+    throw new Error('DSQA run mixes legacy accuracy-only chunks with macro-F1 chunks');
+  }
+  const dsqaUsesMacroF1 = suite === 'dsqa' && chunksWithPrimaryScore === chunks.length;
   const metricValues = new Map<string, { value: number; weight: number }[]>();
   for (let index = 0; index < chunks.length; index++) {
     const first = rowsByChunk[index]?.[0];
@@ -280,8 +287,9 @@ async function summarizeSuite(
   return {
     summary: {
       benchmarkId: DATASET_CONTRACTS[suite].benchmarkId,
-      primaryMetric: suite === 'widesearch' ? 'f1_by_item' : 'accuracy',
-      score: suite === 'widesearch' ? primaryScore : accuracy,
+      primaryMetric:
+        suite === 'widesearch' ? 'f1_by_item' : dsqaUsesMacroF1 ? 'f1_score' : 'accuracy',
+      score: suite === 'widesearch' || dsqaUsesMacroF1 ? primaryScore : accuracy,
       accuracy,
       selectedTasks: selectedTaskCount(spec, suite),
       completedTasks,

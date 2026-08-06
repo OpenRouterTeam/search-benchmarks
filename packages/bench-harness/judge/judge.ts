@@ -35,7 +35,7 @@ export interface JudgeCallSpec<T> {
   readonly instructions?: string;
   readonly userInput: string;
   readonly schemaName: string;
-  readonly jsonSchema: Record<string, unknown>;
+  readonly jsonSchema?: Record<string, unknown>;
   /** Parse the judge's raw text into a verdict. An `err` fails the call. */
   readonly parseVerdict: (text: string) => Either.Either<T, string>;
   /** Optional suite-specific fallback for malformed completed verdicts. */
@@ -60,18 +60,21 @@ export function judgeCall<T>(
   config: JudgeConfig,
   spec: JudgeCallSpec<T>,
 ): Effect<JudgeResult<T>, ModelError> {
-  const text: TextExtendedConfig = {
-    format: {
-      type: 'json_schema',
-      name: spec.schemaName,
-      strict: true,
-      schema: spec.jsonSchema,
-    },
-  };
+  const text: TextExtendedConfig | undefined =
+    spec.jsonSchema === undefined
+      ? undefined
+      : {
+          format: {
+            type: 'json_schema',
+            name: spec.schemaName,
+            strict: true,
+            schema: spec.jsonSchema,
+          },
+        };
   const body: ResponsesRequest = {
     model: config.judgeModel,
     input: [{ role: 'user' as const, content: spec.userInput }],
-    text,
+    ...(text !== undefined && { text }),
     ...(spec.instructions !== undefined && { instructions: spec.instructions }),
     ...(config.temperature !== undefined && { temperature: config.temperature }),
     ...(config.reasoningEffort !== undefined && {

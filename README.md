@@ -114,8 +114,11 @@ bundles.
 | Suite | Primary metric |
 | --- | --- |
 | BrowseComp | Accuracy |
-| DeepSearchQA | Accuracy |
+| DeepSearchQA | Macro F1 |
 | WideSearch | F1 by item |
+
+DeepSearchQA also reports strict Fully Correct accuracy plus macro precision,
+recall, and the paper's four categorical rates.
 
 See [`THIRD_PARTY_DATASETS.md`](THIRD_PARTY_DATASETS.md) for dataset sources and
 licenses. Runner code is released under the [MIT License](LICENSE).

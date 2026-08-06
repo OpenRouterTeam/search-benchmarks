@@ -84,7 +84,9 @@ before committing or sharing it.
 
 The lower-level `bun run cli.ts` interface remains useful for one-off debugging,
 but it does not provide chunk resumption or a redacted publication boundary.
-WideSearch's headline metric is `f1_by_item`, not binary accuracy.
+DeepSearchQA's headline metric is macro `f1_score`; its binary accuracy is the
+strict Fully Correct rate. WideSearch's headline metric is `f1_by_item`, not
+binary accuracy.
 
 Raw Parquet files can be inspected with the companion reader in
 [`apps/trajectories`](../../apps/trajectories/README.md).

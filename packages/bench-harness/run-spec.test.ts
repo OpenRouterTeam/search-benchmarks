@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 
 import {
+  DATASET_CONTRACTS,
   benchmarkConfigForSuite,
   estimatedRunCost,
   parseRunSpec,
@@ -72,6 +73,16 @@ describe('run spec', () => {
     expect(benchmarkConfigForSuite(spec, 'widesearch')).toMatchObject({
       providerOnly: ['OpenAI'],
       allowFallbacks: false,
+    });
+  });
+
+  it('records the official DSQA judge provenance', () => {
+    expect(DATASET_CONTRACTS.dsqa).toMatchObject({
+      judgeModel: 'google/gemini-2.5-flash',
+      judgePromptSource:
+        'https://www.kaggle.com/code/andrewmingwang/deepsearchqa-starter-code?scriptVersionId=285323691',
+      judgePromptSha256:
+        '9bdd0b9198244de8a78bf256b5332805d00c140e85b713f0e1878b3e4aa605a0',
     });
   });
 });

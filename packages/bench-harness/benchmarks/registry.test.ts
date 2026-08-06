@@ -31,6 +31,12 @@ describe('search benchmark registry', () => {
     });
   }
 
+  it('registers DSQA macro-F1 hooks', () => {
+    const benchmark = getBenchmark('search_dsqa');
+    expect(typeof benchmark?.runLevelScores).toBe('function');
+    expect(typeof benchmark?.primaryScore).toBe('function');
+  });
+
   it('returns undefined for an unknown benchmark', () => {
     expect(getBenchmark('does_not_exist')).toBeUndefined();
     expect(getBenchmarkMeta('does_not_exist')).toBeUndefined();

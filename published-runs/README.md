@@ -4,8 +4,9 @@ This directory contains intentionally tracked, redacted benchmark bundles
 grouped by search engine under `<engine>/<run-id>/`. Each bundle is
 generated from raw, gitignored artifacts under `runs/ts/<run-id>/`.
 
-A published bundle contains the resolved run configuration, immutable dataset
-and prompt provenance, aggregate metrics, raw-artifact checksums, a self-contained
+A published bundle contains the resolved run configuration, immutable dataset,
+inference-prompt, and judge-prompt/model provenance, aggregate metrics,
+raw-artifact checksums, a self-contained
 HTML report, and redacted search trajectories. It excludes benchmark targets,
 judge details, raw inputs, model answers, search queries, session IDs, and
 generation IDs by default.
