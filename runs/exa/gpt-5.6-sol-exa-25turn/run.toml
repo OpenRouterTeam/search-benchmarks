@@ -1,0 +1,37 @@
+version = 1
+title = "GPT-5.6 Sol with Exa search, 25 turns"
+description = "Three-suite OpenRouter search benchmark at a twenty-five-turn search budget."
+model = "openai/gpt-5.6-sol"
+suites = ["browsecomp", "dsqa", "widesearch"]
+start = 0
+limit = 100
+epochs = 1
+concurrency = 15
+chunk_size = 15
+budget_usd = 515
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "exa"
+max_agent_turns = 25
+# max_total_results is derived as turns x per-search results (125 here) because
+# the server default of 50 would otherwise bind around turn ten. Set it
+# explicitly to override the derivation.
+
+# Measured from gpt-5.6-sol-exa-25turn-calibration (one task per suite).
+# The budget allows roughly 4x the one-task planning estimate.
+[cost_estimates]
+browsecomp = 0.2045315
+dsqa = 0.48166905
+widesearch = 0.5948045
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false

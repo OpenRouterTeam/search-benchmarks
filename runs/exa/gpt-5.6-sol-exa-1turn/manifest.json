@@ -1,0 +1,793 @@
+{
+  "version": 1,
+  "runId": "gpt-5.6-sol-exa-1turn",
+  "title": "GPT-5.6 Sol with Exa search, 1 turn",
+  "description": "Three-suite OpenRouter search benchmark at a one-turn search budget.",
+  "createdAt": "2026-08-03T02:04:01.865Z",
+  "updatedAt": "2026-08-03T03:21:47.488Z",
+  "status": "complete",
+  "specSha256": "e30098b681b4405138b4736cfdfae7b036e9fae6bac8d5ac9845843a2554213d",
+  "executionFingerprint": "b79d48558bd7a8057e47c50d20bf03899b14a3cf7f43a387cf955c933ab025cf",
+  "repositoryCommit": "fb1f5c771ae757d958b0abf4c6ffdc9b9059df7a",
+  "repositoryDirty": true,
+  "resolvedConfigs": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    }
+  },
+  "datasetContracts": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "source": "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv",
+      "sha256": "7b24471cd5b3eb2a46830a14802b5c029ea62f488ff75a0f88af7923d1454abf",
+      "rows": 1266,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "openai/gpt-4.1"
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "source": "https://huggingface.co/datasets/google/deepsearchqa/resolve/b2623f8653065c2672de6d941fc5434cd652376c/DSQA-full.csv",
+      "sha256": "25d48dcf7efa872e5467032e8b8eedf38d301f59a252d0da95cda584baa78396",
+      "rows": 900,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "google/gemini-2.5-flash"
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "source": "https://huggingface.co/datasets/ByteDance-Seed/WideSearch/resolve/6531a7e5b497d44c8912407e0cb3dc95bd98cc09/widesearch.jsonl",
+      "revision": "ByteDance-Seed/WideSearch@6531a7e5b497d44c8912407e0cb3dc95bd98cc09",
+      "sha256": "bba28ec51dce28fa617f82617d88fcd6bdd4cd4d7f0a4d70db07d7fa8a90bdf4",
+      "rows": 200,
+      "promptSha256": "14061a8a9476ecd7f5b5a4ca3de70248bd9a46f6ff963992a813538382ef23e8",
+      "judgeModel": "openai/gpt-4.1",
+      "gradingReferenceDate": "2025-01-01T00:00:00.000Z"
+    }
+  },
+  "approvedCostUsd": 125,
+  "estimatedCostUsd": 30.908945000000003,
+  "effectiveConcurrency": 15,
+  "chunks": [
+    {
+      "suite": "browsecomp",
+      "start": 0,
+      "end": 15,
+      "sessionId": "3c44e260-4bdb-4f68-8c72-95c1ae55bbf6",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000000-000015.parquet",
+      "sha256": "971b527a00c82e48e1cef5f13debd8049ae20825b96dcc2d38a66b8a271d4051",
+      "bytes": 531627,
+      "completedAt": "2026-08-03T02:07:29.535Z",
+      "summary": {
+        "accuracy": 0.2,
+        "totalQuestions": 15,
+        "correctAnswers": 3,
+        "skippedQuestions": 0,
+        "inputTokens": 70269,
+        "outputTokens": 51916,
+        "totalTokens": 122185,
+        "reasoningTokens": 48067,
+        "totalCost": 1.9918162499999998,
+        "generationTimeMs": 1207987,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.2,
+            "totalQuestions": 15,
+            "correctAnswers": 3,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 15,
+      "end": 30,
+      "sessionId": "52f54f83-ead1-4fea-9f2b-92624feea6a3",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000015-000030.parquet",
+      "sha256": "6ae5bc1aef3ac1b49c8fcd58c3c707c9047b0f648feb00017ddea188ca54f0ef",
+      "bytes": 402196,
+      "completedAt": "2026-08-03T02:09:39.131Z",
+      "summary": {
+        "accuracy": 0.3333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 5,
+        "skippedQuestions": 0,
+        "inputTokens": 67839,
+        "outputTokens": 34058,
+        "totalTokens": 101897,
+        "reasoningTokens": 30529,
+        "totalCost": 1.4486404999999998,
+        "generationTimeMs": 731614,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.3333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 5,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 30,
+      "end": 45,
+      "sessionId": "2f6508ca-1da8-4493-be56-253f05281662",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000030-000045.parquet",
+      "sha256": "b2375e23beae3c87b6dd313d2ec90b646a0705bb881a796811e52eca8b06eb56",
+      "bytes": 525407,
+      "completedAt": "2026-08-03T02:12:19.642Z",
+      "summary": {
+        "accuracy": 0.26666666666666666,
+        "totalQuestions": 15,
+        "correctAnswers": 4,
+        "skippedQuestions": 0,
+        "inputTokens": 64075,
+        "outputTokens": 49775,
+        "totalTokens": 113850,
+        "reasoningTokens": 46258,
+        "totalCost": 1.8944190000000003,
+        "generationTimeMs": 1086578,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.26666666666666666,
+            "totalQuestions": 15,
+            "correctAnswers": 4,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 45,
+      "end": 60,
+      "sessionId": "946c9706-8034-4602-8543-5697e8842cb0",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000045-000060.parquet",
+      "sha256": "703e52ed970a577a01406161faa40ad35a3616d47d392ca181f11d592954e2fc",
+      "bytes": 506823,
+      "completedAt": "2026-08-03T02:16:04.627Z",
+      "summary": {
+        "accuracy": 0.4666666666666667,
+        "totalQuestions": 15,
+        "correctAnswers": 7,
+        "skippedQuestions": 0,
+        "inputTokens": 70251,
+        "outputTokens": 47654,
+        "totalTokens": 117905,
+        "reasoningTokens": 44184,
+        "totalCost": 1.8730240000000002,
+        "generationTimeMs": 1161222,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.4666666666666667,
+            "totalQuestions": 15,
+            "correctAnswers": 7,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 60,
+      "end": 75,
+      "sessionId": "cf4e9a11-4e35-4b93-bfb1-07828dc5602e",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000060-000075.parquet",
+      "sha256": "bae6b2525dd319ed0edf366e137593eac6c2f4ad4a7cf840c76b8b453a431975",
+      "bytes": 417966,
+      "completedAt": "2026-08-03T02:18:09.568Z",
+      "summary": {
+        "accuracy": 0.3333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 5,
+        "skippedQuestions": 0,
+        "inputTokens": 61797,
+        "outputTokens": 36373,
+        "totalTokens": 98170,
+        "reasoningTokens": 32565,
+        "totalCost": 1.4778769999999997,
+        "generationTimeMs": 725706,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.3333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 5,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 75,
+      "end": 90,
+      "sessionId": "2ff4ff70-4cc2-4006-83fd-bde98b854334",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000075-000090.parquet",
+      "sha256": "801a84718144b649f9a86c886d46329b793405005c8f7659633c87dad9d03b57",
+      "bytes": 607097,
+      "completedAt": "2026-08-03T02:22:27.111Z",
+      "summary": {
+        "accuracy": 0.13333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 2,
+        "skippedQuestions": 0,
+        "inputTokens": 66076,
+        "outputTokens": 57501,
+        "totalTokens": 123577,
+        "reasoningTokens": 53883,
+        "totalCost": 2.139064,
+        "generationTimeMs": 1281089,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.13333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 2,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "browsecomp",
+      "start": 90,
+      "end": 100,
+      "sessionId": "b7bc4350-5b4c-44fe-b581-a88c91decdce",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/browsecomp/000090-000100.parquet",
+      "sha256": "b8c6126b81f9bf40c19afdab4e8b00f6fd9c91161da1bba81ba785735576145f",
+      "bytes": 363608,
+      "completedAt": "2026-08-03T02:25:05.738Z",
+      "summary": {
+        "accuracy": 0.3,
+        "totalQuestions": 10,
+        "correctAnswers": 3,
+        "skippedQuestions": 0,
+        "inputTokens": 44215,
+        "outputTokens": 35204,
+        "totalTokens": 79419,
+        "reasoningTokens": 32846,
+        "totalCost": 1.33384,
+        "generationTimeMs": 717159,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.3,
+            "totalQuestions": 10,
+            "correctAnswers": 3,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 0,
+      "end": 15,
+      "sessionId": "d7e09384-f0ad-42d3-b523-9d90c95eb402",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000000-000015.parquet",
+      "sha256": "ff602248315b1b93288c090115939e456de02417d2198406b9fd3fe15099da56",
+      "bytes": 264932,
+      "completedAt": "2026-08-03T02:25:56.430Z",
+      "summary": {
+        "accuracy": 0.4666666666666667,
+        "totalQuestions": 15,
+        "correctAnswers": 7,
+        "skippedQuestions": 0,
+        "inputTokens": 59823,
+        "outputTokens": 21555,
+        "totalTokens": 81378,
+        "reasoningTokens": 17058,
+        "totalCost": 1.0180395500000001,
+        "generationTimeMs": 293024,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.4666666666666667,
+            "totalQuestions": 15,
+            "correctAnswers": 7,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 15,
+      "end": 30,
+      "sessionId": "35d805e4-8570-43d8-b0c8-e6df0ec83957",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000015-000030.parquet",
+      "sha256": "0d8272b557f1e55800300c28e3a8d3786ec81b7504fce00514302e06d27d32db",
+      "bytes": 261319,
+      "completedAt": "2026-08-03T02:27:15.347Z",
+      "summary": {
+        "accuracy": 0.5333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 8,
+        "skippedQuestions": 0,
+        "inputTokens": 54765,
+        "outputTokens": 21388,
+        "totalTokens": 76153,
+        "reasoningTokens": 16814,
+        "totalCost": 0.9836193,
+        "generationTimeMs": 326521,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.5333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 8,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 30,
+      "end": 45,
+      "sessionId": "70b1006e-e258-443e-b65d-6a17bb015844",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000030-000045.parquet",
+      "sha256": "faf6f25e7cb5e4a63f203e3cd0b215fdc0004b3cc4ab10efcb15bfd97c7a8fdb",
+      "bytes": 300460,
+      "completedAt": "2026-08-03T02:28:40.845Z",
+      "summary": {
+        "accuracy": 0.5333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 8,
+        "skippedQuestions": 0,
+        "inputTokens": 55400,
+        "outputTokens": 27263,
+        "totalTokens": 82663,
+        "reasoningTokens": 22365,
+        "totalCost": 1.16554235,
+        "generationTimeMs": 402904,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.5333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 8,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 45,
+      "end": 60,
+      "sessionId": "3245cb4e-0ef1-4148-b298-8a7f75535f8c",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000045-000060.parquet",
+      "sha256": "e83ce4d5124c569a265f344561ccabe86088edf54a8418dc49e34e992bf78746",
+      "bytes": 245889,
+      "completedAt": "2026-08-03T02:29:35.776Z",
+      "summary": {
+        "accuracy": 0.6,
+        "totalQuestions": 15,
+        "correctAnswers": 9,
+        "skippedQuestions": 0,
+        "inputTokens": 61380,
+        "outputTokens": 19194,
+        "totalTokens": 80574,
+        "reasoningTokens": 14841,
+        "totalCost": 0.9677415500000002,
+        "generationTimeMs": 301474,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.6,
+            "totalQuestions": 15,
+            "correctAnswers": 9,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 60,
+      "end": 75,
+      "sessionId": "9593c285-5602-4812-b67d-b1c6f554f4b4",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000060-000075.parquet",
+      "sha256": "7fb0e9701cd5ccf06bb6af23478860b6d284c9cc5e25ca2b907d759f296c06c1",
+      "bytes": 249795,
+      "completedAt": "2026-08-03T02:30:37.591Z",
+      "summary": {
+        "accuracy": 0.4,
+        "totalQuestions": 15,
+        "correctAnswers": 6,
+        "skippedQuestions": 0,
+        "inputTokens": 56682,
+        "outputTokens": 20001,
+        "totalTokens": 76683,
+        "reasoningTokens": 15369,
+        "totalCost": 0.9538624499999999,
+        "generationTimeMs": 287384,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.4,
+            "totalQuestions": 15,
+            "correctAnswers": 6,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 75,
+      "end": 90,
+      "sessionId": "cf894b66-a471-475f-9f39-43c1add49254",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000075-000090.parquet",
+      "sha256": "d94b8da155e988af9f8829ff28b3d7451205dd7783b74585d0064817201a2d1c",
+      "bytes": 306771,
+      "completedAt": "2026-08-03T02:33:00.423Z",
+      "summary": {
+        "accuracy": 0.3333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 5,
+        "skippedQuestions": 0,
+        "inputTokens": 52663,
+        "outputTokens": 25274,
+        "totalTokens": 77937,
+        "reasoningTokens": 20974,
+        "totalCost": 1.0901562500000002,
+        "generationTimeMs": 361276,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.3333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 5,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "dsqa",
+      "start": 90,
+      "end": 100,
+      "sessionId": "b11c69eb-98d3-47e5-b12c-3026de03f9b2",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/dsqa/000090-000100.parquet",
+      "sha256": "9a33ba28b94c6c2fd5f0d6e387b8a8adba7d9855801926923f57ad9e3f07dce7",
+      "bytes": 152310,
+      "completedAt": "2026-08-03T02:34:02.782Z",
+      "summary": {
+        "accuracy": 0.5,
+        "totalQuestions": 10,
+        "correctAnswers": 5,
+        "skippedQuestions": 0,
+        "inputTokens": 35632,
+        "outputTokens": 10844,
+        "totalTokens": 46476,
+        "reasoningTokens": 8664,
+        "totalCost": 0.5613353000000001,
+        "generationTimeMs": 128977,
+        "temperature": 0,
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.5,
+            "totalQuestions": 10,
+            "correctAnswers": 5,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 0,
+      "end": 15,
+      "sessionId": "6c7cedfb-f6d1-4974-b4a8-c5d80d2a6913",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000000-000015.parquet",
+      "sha256": "ce773dd621eb2ff463341ab0dd9f2a7d94a3d4816ccd20229699ebca00c7b796",
+      "bytes": 555531,
+      "completedAt": "2026-08-03T02:37:23.718Z",
+      "summary": {
+        "accuracy": 0.06666666666666667,
+        "totalQuestions": 15,
+        "correctAnswers": 1,
+        "skippedQuestions": 0,
+        "inputTokens": 135049,
+        "outputTokens": 103976,
+        "totalTokens": 239025,
+        "reasoningTokens": 34016,
+        "totalCost": 2.9878117499999997,
+        "generationTimeMs": 1028887,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.7323548313087715,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.06666666666666667,
+            "totalQuestions": 15,
+            "correctAnswers": 1,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 15,
+      "end": 30,
+      "sessionId": "229946fa-6d3b-4e13-b43f-4e3d14c90a75",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000015-000030.parquet",
+      "sha256": "e69d06af55340ff097725c7e7afc69d465d4fbd0d57663c8056ae1f2e09e7ccd",
+      "bytes": 492420,
+      "completedAt": "2026-08-03T02:39:36.964Z",
+      "summary": {
+        "accuracy": 0.2,
+        "totalQuestions": 15,
+        "correctAnswers": 3,
+        "skippedQuestions": 0,
+        "inputTokens": 94874,
+        "outputTokens": 66799,
+        "totalTokens": 161673,
+        "reasoningTokens": 34482,
+        "totalCost": 2.1309605,
+        "generationTimeMs": 821199,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.8249328244534705,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.2,
+            "totalQuestions": 15,
+            "correctAnswers": 3,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 30,
+      "end": 45,
+      "sessionId": "21a6e629-f476-4a4e-8160-1b210ee2dfb1",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000030-000045.parquet",
+      "sha256": "7ed9ffe678207c677d0028913a26cd339b99f1a5ea567b525ce1db2e78af2247",
+      "bytes": 494281,
+      "completedAt": "2026-08-03T02:42:10.690Z",
+      "summary": {
+        "accuracy": 0.06666666666666667,
+        "totalQuestions": 15,
+        "correctAnswers": 1,
+        "skippedQuestions": 0,
+        "inputTokens": 77413,
+        "outputTokens": 70862,
+        "totalTokens": 148275,
+        "reasoningTokens": 36163,
+        "totalCost": 2.2305147499999998,
+        "generationTimeMs": 927666,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.56559709433331,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.06666666666666667,
+            "totalQuestions": 15,
+            "correctAnswers": 1,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 45,
+      "end": 60,
+      "sessionId": "57e1301d-19b1-4248-84a6-fe5be02b163a",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000045-000060.parquet",
+      "sha256": "ffd9864a6b50b548385ed669256d1339d5c2837fd6cdb48e7e8be6df7831ac44",
+      "bytes": 602414,
+      "completedAt": "2026-08-03T03:11:39.937Z",
+      "summary": {
+        "accuracy": 0,
+        "totalQuestions": 15,
+        "correctAnswers": 0,
+        "skippedQuestions": 0,
+        "inputTokens": 107832,
+        "outputTokens": 87590,
+        "totalTokens": 195422,
+        "reasoningTokens": 47002,
+        "totalCost": 2.73697375,
+        "generationTimeMs": 1075519,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.5940178741051656,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0,
+            "totalQuestions": 15,
+            "correctAnswers": 0,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 60,
+      "end": 75,
+      "sessionId": "8240e37a-f517-4ebf-b351-74107170f3d3",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000060-000075.parquet",
+      "sha256": "6ae2a1a2dbffb97241d8a6e168280f7c7013d2e3d2be62f6d573253f627d029f",
+      "bytes": 538794,
+      "completedAt": "2026-08-03T03:14:43.359Z",
+      "summary": {
+        "accuracy": 0.13333333333333333,
+        "totalQuestions": 15,
+        "correctAnswers": 2,
+        "skippedQuestions": 0,
+        "inputTokens": 90259,
+        "outputTokens": 93161,
+        "totalTokens": 183420,
+        "reasoningTokens": 38614,
+        "totalCost": 2.6343717499999997,
+        "generationTimeMs": 970004,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.7129662670061043,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.13333333333333333,
+            "totalQuestions": 15,
+            "correctAnswers": 2,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 75,
+      "end": 90,
+      "sessionId": "228fbbb4-3429-442c-b8f6-a92c32669535",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000075-000090.parquet",
+      "sha256": "e22be6b73a316cf05377c089c9aa6b5cc2f9d3132efc280edfc45e786291094c",
+      "bytes": 500135,
+      "completedAt": "2026-08-03T03:17:25.040Z",
+      "summary": {
+        "accuracy": 0.2,
+        "totalQuestions": 15,
+        "correctAnswers": 3,
+        "skippedQuestions": 0,
+        "inputTokens": 96666,
+        "outputTokens": 76873,
+        "totalTokens": 173539,
+        "reasoningTokens": 36869,
+        "totalCost": 2.3748150000000003,
+        "generationTimeMs": 943599,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.7074703145603557,
+          "weight": 15
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0.2,
+            "totalQuestions": 15,
+            "correctAnswers": 3,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    },
+    {
+      "suite": "widesearch",
+      "start": 90,
+      "end": 100,
+      "sessionId": "aae13bf6-077c-4c22-9851-7f95ccb364a9",
+      "artifact": "runs/exa/gpt-5.6-sol-exa-1turn/raw/widesearch/000090-000100.parquet",
+      "sha256": "a15a29a51545fc146046f7221219e091b6e539e87be9909edf69f4cca4f20946",
+      "bytes": 421809,
+      "completedAt": "2026-08-03T03:21:47.377Z",
+      "summary": {
+        "accuracy": 0,
+        "totalQuestions": 10,
+        "correctAnswers": 0,
+        "skippedQuestions": 0,
+        "inputTokens": 76196,
+        "outputTokens": 67328,
+        "totalTokens": 143524,
+        "reasoningTokens": 31526,
+        "totalCost": 2.014732,
+        "generationTimeMs": 889275,
+        "temperature": 0,
+        "primaryScore": {
+          "value": 0.6270122595272922,
+          "weight": 10
+        },
+        "epochResults": [
+          {
+            "epoch": 0,
+            "accuracy": 0,
+            "totalQuestions": 10,
+            "correctAnswers": 0,
+            "skippedQuestions": 0
+          }
+        ]
+      }
+    }
+  ]
+}
