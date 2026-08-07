@@ -249,7 +249,8 @@ async function summarizeSuite(
   if (suite === 'dsqa' && chunksWithPrimaryScore > 0 && chunksWithPrimaryScore < chunks.length) {
     throw new Error('DSQA run mixes legacy accuracy-only chunks with macro-F1 chunks');
   }
-  const dsqaUsesMacroF1 = suite === 'dsqa' && chunksWithPrimaryScore === chunks.length;
+  const dsqaUsesMacroF1 =
+    suite === 'dsqa' && chunks.length > 0 && chunksWithPrimaryScore === chunks.length;
   const metricValues = new Map<string, { value: number; weight: number }[]>();
   for (let index = 0; index < chunks.length; index++) {
     const first = rowsByChunk[index]?.[0];

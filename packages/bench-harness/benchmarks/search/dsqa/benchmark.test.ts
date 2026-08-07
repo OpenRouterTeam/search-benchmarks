@@ -161,7 +161,7 @@ describe('DSQA metrics', () => {
     [{ A: true, B: false }, ['C'], 0.5, 0.5, 0.5, 0],
     [{ A: false, B: false }, [], 0, 0, 0, 0],
     [{}, [], 0, 0, 0, 0],
-  ] as const)(
+  ] satisfies [Record<string, boolean>, string[], number, number, number, number][])(
     'calculates paper metrics for %#',
     (correctnessDetails, excessiveAnswers, precision, recall, f1, correct) => {
       const grade = calculateDsqaGrade({
