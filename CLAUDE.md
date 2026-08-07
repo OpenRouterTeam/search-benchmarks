@@ -1,8 +1,9 @@
 # OpenRouter search benchmarks - agent notes
 
-This repository contains a standalone TypeScript benchmark harness and a local
-trajectory viewer. It supports BrowseComp, DeepSearchQA, and WideSearch through
-the public OpenRouter Responses API.
+This repository pins the canonical TypeScript benchmark harness as a Git
+dependency and adds a search benchmark runner plus local trajectory viewer. It
+supports BrowseComp, DeepSearchQA, and WideSearch through the public OpenRouter
+Responses API.
 
 All benchmark runs make paid API calls. Never start one without explicit user
 approval of both scale and cost. Tests, typechecks, publication from existing
@@ -11,7 +12,7 @@ artifacts, and `--dry-run` do not make paid inference calls.
 ## Commands
 
 ```bash
-cd packages/bench-harness
+cd apps/search-bench-runner
 bun install
 bun run typecheck
 bun test
@@ -27,7 +28,8 @@ bun run web -- --input ../../runs/ts --open
 ```
 
 Credentials come from `.env`. Paid runs require `OPENROUTER_API_KEY`; dataset
-downloads may use `HF_TOKEN`.
+downloads may use `HF_TOKEN`. Benchmark implementation changes land upstream;
+then update the pinned Git commit and lockfiles in both apps.
 
 ## Run discipline
 
@@ -42,6 +44,7 @@ downloads may use `HF_TOKEN`.
   `published-runs/<engine>/` are the only result artifacts intended for version
   control.
 - Review every published bundle before sharing it.
+- DeepSearchQA's headline metric is macro `f1_score`, not Fully Correct accuracy.
 - WideSearch's headline metric is `f1_by_item`, not strict all-cells accuracy.
 - Keep benchmark prompts, graders, dataset revisions, and score calculations
   stable unless a change is documented and regression-tested.

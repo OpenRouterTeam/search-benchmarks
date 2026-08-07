@@ -3,9 +3,12 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@openrouter/search-trajectory-viewer",
+      "name": "@openrouter/bench-harness",
       "dependencies": {
         "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#e9801e4ddfd070f30d188ed26ebcda62b3234625",
+        "effect": "3.20.0",
+        "smol-toml": "1.6.1",
+        "zod": "4.4.3",
       },
       "devDependencies": {
         "@types/node": "24.10.0",

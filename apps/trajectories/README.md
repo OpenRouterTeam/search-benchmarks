@@ -1,5 +1,7 @@
 # Trajectory Reader
 
+> **Runner / harness:** Runs are created by the [search benchmark runner](../search-bench-runner/README.md) using the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+
 Local tooling for inspecting raw bench-harness Parquet trajectories. It accepts
 either one `.parquet` file or a complete `runs/ts/<run-id>` directory and
 recursively loads all chunk files.
@@ -56,13 +58,14 @@ page.
   explanation, and deduplicated cited sources.
 - **Search** — per-call timeline separating executed searches from calls blocked
   by the search budget, with source hosts and links.
-- **Grading** — decoded judge verdicts, WideSearch metric bars, and the scorer
-  trajectory.
+- **Grading** — decoded judge verdicts, DeepSearchQA correctness details and
+  precision/recall/F1, WideSearch metric bars, and the scorer trajectory.
 - **Raw** — Responses items, messages, metadata, resolved config, and generation
   IDs, each with a copy button.
 
 `Run overview` aggregates the selected run: graded tasks, provider cost, tokens,
-per-suite accuracy and primary score, and a chunk table. With `All runs`
+per-suite strict accuracy and primary score, including DSQA macro F1, and a
+chunk table. With `All runs`
 selected it lists every run so you can compare and click into one. It is useful
 while a benchmark is still writing chunks.
 

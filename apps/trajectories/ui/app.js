@@ -115,6 +115,7 @@ function jsonCard(title, value) {
 /* Derive the metric name from the grader's own extra scores, so a new suite
  * with a different primary metric labels itself correctly without a UI change. */
 const PRIMARY_METRIC_LABELS = new Map([
+  ['f1_score', 'macro F1'],
   ['f1_by_item', 'item F1'],
   ['f1_by_row', 'row F1'],
   ['success_rate', 'success rate'],
@@ -516,6 +517,24 @@ function verdictCards(trajectory) {
       cards.push(metricsCard('WideSearch metrics', run.metrics));
       continue;
     }
+    if (run.kind === 'dsqa_grade' && isPlainObject(run.metrics)) {
+      cards.push(metricsCard('DeepSearchQA metrics', run.metrics));
+      const verdict = isPlainObject(run.verdict) ? run.verdict : null;
+      const details = verdict !== null && isPlainObject(verdict.correctness_details)
+        ? Object.entries(verdict.correctness_details)
+        : [];
+      const excessive = verdict !== null && Array.isArray(verdict.excessive_answers)
+        ? verdict.excessive_answers
+        : [];
+      cards.push(
+        kvCard('DeepSearchQA verdict', [
+          ...details.map(([answer, found]) => [answer, String(found)]),
+          ['excessive answers', excessive.length === 0 ? 'none' : excessive.join(', ')],
+        ]),
+        proseCard('Judge explanation', verdict?.explanation ?? ''),
+      );
+      continue;
+    }
     if ('correct' in run) {
       cards.push(
         kvCard('Answer-equivalence verdict', [
@@ -754,7 +773,7 @@ function runsTable() {
          * accuracy — per-suite numbers live on the suite cards below. */
         el('th', {
           text: 'exact match',
-          title: 'Strict correct/total pooled across suites; widesearch requires every cell exact',
+          title: 'Strict correct/total pooled across suites; DSQA requires a fully correct set and WideSearch requires every cell exact',
         }),
         el('th', { text: 'cost' }),
       ]),
@@ -855,9 +874,11 @@ function renderRunOverview() {
     const [selectedRun, value] = options.find(([runId]) => runId === preferredRun) ?? options[0];
     state.overviewRuns.set(task, selectedRun);
 
-    /* On widesearch every cell must be exact to score C, so the strict rate
-     * floors out near 11% while item F1 moves — lead with the real metric. */
-    const exactLabel = value.primaryLabel === null ? 'accuracy' : 'all cells exact';
+    const exactLabel = value.primaryLabel === 'item F1'
+      ? 'all cells exact'
+      : value.primaryLabel === 'macro F1'
+        ? 'fully correct'
+        : 'accuracy';
     const rows = [
       ['tasks', `${value.correct}/${value.questions} correct`],
       [exactLabel, value.questions ? pct(value.correct / value.questions) : '—'],
