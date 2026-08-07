@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "runId": "gpt-5.6-sol-parallel-5turn-calibration",
+  "title": "GPT-5.6 Sol with Parallel search, 5-turn calibration",
+  "status": "complete",
+  "generatedAt": "2026-08-03T01:51:38.225Z",
+  "model": "openai/gpt-5.6-sol",
+  "totalCost": 0.4774073,
+  "totalTokens": 70995,
+  "suites": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "primaryMetric": "accuracy",
+      "score": 1,
+      "accuracy": 1,
+      "selectedTasks": 1,
+      "completedTasks": 1,
+      "correctAnswers": 1,
+      "skippedQuestions": 0,
+      "inputTokens": 23566,
+      "outputTokens": 980,
+      "totalTokens": 24546,
+      "reasoningTokens": 579,
+      "generationTimeMs": 20724,
+      "totalCost": 0.12221749999999999,
+      "metrics": {
+        "mean_stated_confidence": 88,
+        "samples_judged": 1
+      },
+      "chunks": 1
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "primaryMetric": "accuracy",
+      "score": 1,
+      "accuracy": 1,
+      "selectedTasks": 1,
+      "completedTasks": 1,
+      "correctAnswers": 1,
+      "skippedQuestions": 0,
+      "inputTokens": 15979,
+      "outputTokens": 1928,
+      "totalTokens": 17907,
+      "reasoningTokens": 1424,
+      "generationTimeMs": 32011,
+      "totalCost": 0.12083030000000002,
+      "metrics": {},
+      "chunks": 1
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "primaryMetric": "f1_by_item",
+      "score": 0.19,
+      "accuracy": 0,
+      "selectedTasks": 1,
+      "completedTasks": 1,
+      "correctAnswers": 0,
+      "skippedQuestions": 0,
+      "inputTokens": 21657,
+      "outputTokens": 6885,
+      "totalTokens": 28542,
+      "reasoningTokens": 2707,
+      "generationTimeMs": 80260,
+      "totalCost": 0.2343595,
+      "metrics": {
+        "success_rate": 0,
+        "precision_by_row": 0.12,
+        "recall_by_row": 0.12,
+        "f1_by_row": 0.12,
+        "precision_by_item": 0.19,
+        "recall_by_item": 0.19,
+        "f1_by_item": 0.19
+      },
+      "chunks": 1
+    }
+  }
+}

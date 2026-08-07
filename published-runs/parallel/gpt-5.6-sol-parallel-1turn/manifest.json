@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "run_id": "gpt-5.6-sol-parallel-1turn",
+  "status": "complete",
+  "created_at": "2026-08-03T02:04:01.933Z",
+  "updated_at": "2026-08-03T03:00:25.879Z",
+  "source_spec_sha256": "3f11b8e3c7ad326c55a32cf2d0727468fe4aa8ab5283eb3f9082d399363d9793",
+  "execution_fingerprint": "b79d48558bd7a8057e47c50d20bf03899b14a3cf7f43a387cf955c933ab025cf",
+  "harness_changes": [],
+  "repository_commit": "fb1f5c771ae757d958b0abf4c6ffdc9b9059df7a",
+  "repository_dirty": true,
+  "estimated_cost_usd": 25.3551,
+  "approved_cost_usd": 105,
+  "effective_concurrency": 15,
+  "resolved_configs": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "parallel",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "parallel",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "parallel",
+        "maxAgentTurns": 1
+      },
+      "maxRetries": 10
+    }
+  },
+  "dataset_contracts": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "source": "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv",
+      "sha256": "7b24471cd5b3eb2a46830a14802b5c029ea62f488ff75a0f88af7923d1454abf",
+      "rows": 1266,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "openai/gpt-4.1"
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "source": "https://huggingface.co/datasets/google/deepsearchqa/resolve/b2623f8653065c2672de6d941fc5434cd652376c/DSQA-full.csv",
+      "sha256": "25d48dcf7efa872e5467032e8b8eedf38d301f59a252d0da95cda584baa78396",
+      "rows": 900,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "google/gemini-2.5-flash"
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "source": "https://huggingface.co/datasets/ByteDance-Seed/WideSearch/resolve/6531a7e5b497d44c8912407e0cb3dc95bd98cc09/widesearch.jsonl",
+      "revision": "ByteDance-Seed/WideSearch@6531a7e5b497d44c8912407e0cb3dc95bd98cc09",
+      "sha256": "bba28ec51dce28fa617f82617d88fcd6bdd4cd4d7f0a4d70db07d7fa8a90bdf4",
+      "rows": 200,
+      "promptSha256": "14061a8a9476ecd7f5b5a4ca3de70248bd9a46f6ff963992a813538382ef23e8",
+      "judgeModel": "openai/gpt-4.1",
+      "gradingReferenceDate": "2025-01-01T00:00:00.000Z"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "suite": "browsecomp",
+      "range": [
+        0,
+        15
+      ],
+      "filename": "000000-000015.parquet",
+      "sha256": "6ecc37ae051cb0b8c6222f46c92a7942268aaf3dea3f3628d25c7535cd4fb733",
+      "bytes": 527158
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        15,
+        30
+      ],
+      "filename": "000015-000030.parquet",
+      "sha256": "effe5445d88e4399abb7711efa30739055a29e79e1a09202e8cae250ba118ca8",
+      "bytes": 458720
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        30,
+        45
+      ],
+      "filename": "000030-000045.parquet",
+      "sha256": "33ad384c408b0ad597e93b95e97f037c05153cbd2e35a7c81844216b73ae945e",
+      "bytes": 441480
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        45,
+        60
+      ],
+      "filename": "000045-000060.parquet",
+      "sha256": "dcb795ee5f07007a0396ed5c15e42aab4c3e01b2fd4dff8158ab38f55af8d40c",
+      "bytes": 490654
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        60,
+        75
+      ],
+      "filename": "000060-000075.parquet",
+      "sha256": "5930f871031961a322c59fc7815794948f1bf177b5655c7a19910bdc9b22c958",
+      "bytes": 381639
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        75,
+        90
+      ],
+      "filename": "000075-000090.parquet",
+      "sha256": "76f7b9e1217ea7fe5b0ad4852e7a560926268dd4b51fe4caa15d1608427f5603",
+      "bytes": 526595
+    },
+    {
+      "suite": "browsecomp",
+      "range": [
+        90,
+        100
+      ],
+      "filename": "000090-000100.parquet",
+      "sha256": "4d451e5a3d99f55d42a582612ef90280c80d2ab9bdf881eb81411ba58bcfeaa9",
+      "bytes": 370287
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        0,
+        15
+      ],
+      "filename": "000000-000015.parquet",
+      "sha256": "23bf3fac9f4da03620330aba5b206925b3a177c7c82bd95ad149670e85b465e1",
+      "bytes": 289203
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        15,
+        30
+      ],
+      "filename": "000015-000030.parquet",
+      "sha256": "34846eff8619b64cad4bf753d14e5827d2ab30aec9392b72636ed97135ff756c",
+      "bytes": 298962
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        30,
+        45
+      ],
+      "filename": "000030-000045.parquet",
+      "sha256": "6dbd6366a5b943ff5a646e2ae842842a3aff8fd919f976870ad3d471925d83a4",
+      "bytes": 275699
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        45,
+        60
+      ],
+      "filename": "000045-000060.parquet",
+      "sha256": "fe43e3296861c6b0b54dc88a9abca4a6c24a4d1a7611254d1270f48f6b36a8bb",
+      "bytes": 245298
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        60,
+        75
+      ],
+      "filename": "000060-000075.parquet",
+      "sha256": "92c5103807582fcef011cfaf922a9105e84f94ba9b3e389b00327479b49fc396",
+      "bytes": 270627
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        75,
+        90
+      ],
+      "filename": "000075-000090.parquet",
+      "sha256": "f1990b279d04e1f6d3422116661993c2798d13618e6001096edbb55d0bd49a2a",
+      "bytes": 266846
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        90,
+        100
+      ],
+      "filename": "000090-000100.parquet",
+      "sha256": "2e95aae3811c5bbbbafb7ba806c256889284524617b9aafef4329218a825c373",
+      "bytes": 180610
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        0,
+        15
+      ],
+      "filename": "000000-000015.parquet",
+      "sha256": "f192043c21094c37d01029b1ef8807a82239491b5afa6d79c623685a37715f8f",
+      "bytes": 526029
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        15,
+        30
+      ],
+      "filename": "000015-000030.parquet",
+      "sha256": "685fb8bcf934e0d03ae631d4446c79f04e45cb3d3e556d961d680e8fe21b04c6",
+      "bytes": 433358
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        30,
+        45
+      ],
+      "filename": "000030-000045.parquet",
+      "sha256": "5a940f077fe09e51e1f98bb08de76b8f896b777d352a5f359a74cbddfeb628b0",
+      "bytes": 460719
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        45,
+        60
+      ],
+      "filename": "000045-000060.parquet",
+      "sha256": "21738717d5369a6c009e148f609f2617a8b977bb229477ef981ff6456beff971",
+      "bytes": 557157
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        60,
+        75
+      ],
+      "filename": "000060-000075.parquet",
+      "sha256": "c6fcc5bfb5cb930169c80cd5b96231a4f9f45d0b15287627ba98cb5f13422fc9",
+      "bytes": 524564
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        75,
+        90
+      ],
+      "filename": "000075-000090.parquet",
+      "sha256": "520a633fb506cf4659e527cb64247c7d8628ada32c95c42909fc522fc798e8ba",
+      "bytes": 500323
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        90,
+        100
+      ],
+      "filename": "000090-000100.parquet",
+      "sha256": "1a60915ef572c6e375939a7f7121ece4305169ba15a6e72d6595879195af0d07",
+      "bytes": 382079
+    }
+  ]
+}
