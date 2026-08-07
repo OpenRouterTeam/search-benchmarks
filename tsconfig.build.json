@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist",
+    "rootDir": "."
+  },
+  "include": [
+    "src/**/*.mts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/bun-test.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "test",
+    "node_modules",
+    "dist"
+  ]
+}
