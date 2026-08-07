@@ -1,0 +1,32 @@
+version = 1
+title = "DeepSearchQA paper-grader validation with Perplexity search, 5 turns"
+description = "Ten-task DSQA validation of the official grader and macro-F1 pipeline."
+model = "openai/gpt-5.6-sol"
+suites = ["dsqa"]
+start = 0
+limit = 10
+epochs = 1
+concurrency = 2
+chunk_size = 10
+budget_usd = 2.5
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "perplexity"
+max_agent_turns = 5
+
+[cost_estimates]
+browsecomp = 0.1397875
+dsqa = 0.25
+widesearch = 0.231873
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false
