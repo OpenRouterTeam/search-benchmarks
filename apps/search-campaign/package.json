@@ -1,0 +1,24 @@
+{
+  "name": "@openrouter/search-benchmark-campaign",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Search benchmark campaign runner and publication tooling",
+  "type": "module",
+  "scripts": {
+    "bench": "bun run bench.ts",
+    "publish": "bun run publish-run.ts",
+    "test": "bun test",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@openrouter/bench-harness": "file:../../packages/bench-harness",
+    "effect": "3.20.0",
+    "smol-toml": "1.6.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2"
+  },
+  "license": "MIT"
+}

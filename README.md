@@ -1,5 +1,7 @@
 # OpenRouter Search Benchmarks
 
+> **Runner / harness:** Use the [search campaign runner](apps/search-campaign/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the exact vendored [OpenRouter benchmark harness](packages/bench-harness/README.md).
+
 Standalone TypeScript tooling for running and inspecting OpenRouter search
 benchmarks. The harness supports BrowseComp, DeepSearchQA, and WideSearch over
 the public OpenRouter Responses API and server tools.
@@ -23,7 +25,7 @@ Branch from the reusable harness, keep engine-specific specs under
 
 ```bash
 git switch -c <engine> ayush/harness-port
-cd packages/bench-harness
+cd apps/search-campaign
 bun run bench -- --spec ../../run-specs/<engine>/<spec>.toml --run-id <run-id> --dry-run
 ```
 
@@ -33,9 +35,10 @@ branch is the first engine layer and can be used as the stack example.
 
 ## Repository
 
-- [`packages/bench-harness`](packages/bench-harness/README.md) contains the
-  benchmark runner, datasets, graders, resumable Parquet persistence, and
-  redacted publication tooling.
+- [`packages/bench-harness`](packages/bench-harness/README.md) is an exact
+  vendored snapshot of the canonical benchmark library, datasets, and graders.
+- [`apps/search-campaign`](apps/search-campaign/README.md) owns TOML run specs,
+  cost approval, resumable chunks, and redacted publication.
 - [`apps/trajectories`](apps/trajectories/README.md) provides terminal and local
   web interfaces for inspecting raw Parquet trajectories.
 - [`run-specs`](run-specs/README.md) contains reviewable TOML configurations,
@@ -46,6 +49,21 @@ branch is the first engine layer and can be used as the stack example.
 The retired Python runner, historical sweep configurations, reports, and raw
 run artifacts remain available in Git history.
 
+## Update The Vendored Harness
+
+Benchmark implementation changes land in
+[`OpenRouterTeam/benchmark-harness`](https://github.com/OpenRouterTeam/benchmark-harness)
+first. Pull a reviewed upstream ref and verify the exact tree from the repository
+root:
+
+```bash
+scripts/subtree-pull-benchmark-harness.sh <ref>
+bun scripts/check-benchmark-harness-subtree.ts
+```
+
+The recorded commit and tree live in `packages/bench-harness.upstream.json`.
+Never patch `packages/bench-harness` downstream.
+
 ## Setup
 
 Requirements:
@@ -55,7 +73,7 @@ Requirements:
 - A Hugging Face token when a dataset requires authenticated access
 
 ```bash
-cd packages/bench-harness
+cd apps/search-campaign
 bun install
 bun run typecheck
 bun test
@@ -74,7 +92,7 @@ bun test
 Start with a committed TOML spec and a free dry run:
 
 ```bash
-cd packages/bench-harness
+cd apps/search-campaign
 bun run bench -- \
   --spec ../../run-specs/example-partner-search.toml \
   --run-id partner-search-smoke \
