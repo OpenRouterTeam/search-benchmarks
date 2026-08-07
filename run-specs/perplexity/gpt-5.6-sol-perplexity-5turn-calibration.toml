@@ -1,14 +1,13 @@
 version = 1
-title = "DeepSearchQA paper-grader validation with Perplexity search, 5 turns"
-description = "Ten-task DSQA validation of the official grader and macro-F1 pipeline."
+title = "GPT-5.6 Sol with Perplexity search, 5-turn calibration"
+description = "One task per suite to measure cost before the 100-task run."
 model = "openai/gpt-5.6-sol"
-suites = ["dsqa"]
+suites = ["browsecomp", "dsqa", "widesearch"]
 start = 0
-limit = 10
+limit = 1
 epochs = 1
 concurrency = 2
-chunk_size = 10
-budget_usd = 2.5
+chunk_size = 1
 
 [inference]
 temperature = 0
@@ -20,11 +19,6 @@ allow_fallbacks = false
 surface = "server-tool"
 engine = "perplexity"
 max_agent_turns = 5
-
-[cost_estimates]
-browsecomp = 0.1397875
-dsqa = 0.25
-widesearch = 0.231873
 
 [publish]
 include_inputs = false

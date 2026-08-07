@@ -1,0 +1,38 @@
+version = 1
+title = "GPT-5.6 Sol with Perplexity search, 25 turns"
+description = "Three-suite OpenRouter search benchmark at a twenty-five-turn search budget."
+model = "openai/gpt-5.6-sol"
+suites = ["browsecomp", "dsqa", "widesearch"]
+start = 0
+limit = 100
+epochs = 1
+concurrency = 2
+chunk_size = 10
+budget_usd = 400
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "perplexity"
+max_agent_turns = 25
+# max_total_results is derived as turns x per-search results (125 here) because
+# the server default of 50 would otherwise bind around turn ten. Set it
+# explicitly to override the derivation.
+
+# Measured from gpt-5.6-sol-perplexity-25turn-calibration (one task per suite).
+# Those rates were measured under the binding 50-result default, so real cost
+# will run higher now that the cumulative cap is 125; the budget absorbs it.
+[cost_estimates]
+browsecomp = 0.142472
+dsqa = 0.243153
+widesearch = 0.3453675
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false
