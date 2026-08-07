@@ -1,8 +1,9 @@
 # OpenRouter search benchmarks - agent notes
 
-This repository vendors the canonical TypeScript benchmark harness and adds a
-search campaign runner plus local trajectory viewer. It supports BrowseComp,
-DeepSearchQA, and WideSearch through the public OpenRouter Responses API.
+This repository pins the canonical TypeScript benchmark harness as a Git
+dependency and adds a search campaign runner plus local trajectory viewer. It
+supports BrowseComp, DeepSearchQA, and WideSearch through the public OpenRouter
+Responses API.
 
 All benchmark runs make paid API calls. Never start one without explicit user
 approval of both scale and cost. Tests, typechecks, publication from existing
@@ -18,11 +19,6 @@ bun test
 bun run bench -- --spec ../../run-specs/<engine>/<spec>.toml --run-id <id> --dry-run
 bun run publish -- --run-id <id>
 
-cd packages/bench-harness
-bun install --frozen-lockfile
-bun run typecheck
-bun test
-
 cd apps/trajectories
 bun install
 bun run typecheck
@@ -32,8 +28,8 @@ bun run web -- --input ../../runs/ts --open
 ```
 
 Credentials come from `.env`. Paid runs require `OPENROUTER_API_KEY`; dataset
-downloads may use `HF_TOKEN`. Never edit `packages/bench-harness` directly;
-land changes upstream and update the recorded subtree snapshot.
+downloads may use `HF_TOKEN`. Benchmark implementation changes land upstream;
+then update the pinned Git commit and lockfiles in both apps.
 
 ## Run discipline
 

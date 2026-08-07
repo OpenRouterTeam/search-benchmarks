@@ -1,6 +1,6 @@
 # OpenRouter Search Benchmarks
 
-> **Runner / harness:** Use the [search campaign runner](apps/search-campaign/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the exact vendored [OpenRouter benchmark harness](packages/bench-harness/README.md).
+> **Runner / harness:** Use the [search campaign runner](apps/search-campaign/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
 Standalone TypeScript tooling for running and inspecting OpenRouter search
 benchmarks. The harness supports BrowseComp, DeepSearchQA, and WideSearch over
@@ -35,10 +35,9 @@ branch is the first engine layer and can be used as the stack example.
 
 ## Repository
 
-- [`packages/bench-harness`](packages/bench-harness/README.md) is an exact
-  vendored snapshot of the canonical benchmark library, datasets, and graders.
 - [`apps/search-campaign`](apps/search-campaign/README.md) owns TOML run specs,
-  cost approval, resumable chunks, and redacted publication.
+  cost approval, resumable chunks, redacted publication, and the pinned
+  `@openrouter/bench-harness` dependency.
 - [`apps/trajectories`](apps/trajectories/README.md) provides terminal and local
   web interfaces for inspecting raw Parquet trajectories.
 - [`run-specs`](run-specs/README.md) contains reviewable TOML configurations,
@@ -49,20 +48,19 @@ branch is the first engine layer and can be used as the stack example.
 The retired Python runner, historical sweep configurations, reports, and raw
 run artifacts remain available in Git history.
 
-## Update The Vendored Harness
+## Update The Benchmark Harness
 
 Benchmark implementation changes land in
 [`OpenRouterTeam/benchmark-harness`](https://github.com/OpenRouterTeam/benchmark-harness)
-first. Pull a reviewed upstream ref and verify the exact tree from the repository
-root:
+first. After merge, update the exact Git commit in both app manifests and
+regenerate their locks:
 
 ```bash
-scripts/subtree-pull-benchmark-harness.sh <ref>
-bun scripts/check-benchmark-harness-subtree.ts
+cd apps/search-campaign && bun install
+cd ../trajectories && bun install
 ```
 
-The recorded commit and tree live in `packages/bench-harness.upstream.json`.
-Never patch `packages/bench-harness` downstream.
+Never patch benchmark implementation code in this repository.
 
 ## Setup
 

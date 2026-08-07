@@ -1,6 +1,6 @@
 # OpenRouter Search Campaign Runner
 
-> **Runner / harness:** This package owns TOML specs, cost approval, resumable runs, and publication. Model execution comes from the exact vendored [OpenRouter benchmark harness](../../packages/bench-harness/README.md).
+> **Runner / harness:** This package owns TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
 Search campaign orchestration for three benchmark suites:
 
@@ -74,9 +74,9 @@ hostname; paths, query parameters, fragments, and upstream titles are removed.
 Raw artifacts remain in the gitignored run directory. Review generated content
 before committing or sharing it.
 
-The vendored harness also has a lower-level `bun run bench -- --benchmark ...`
-interface under `packages/bench-harness`; it does not provide TOML planning,
-cost approval, chunk resumption, or a redacted publication boundary.
+The upstream repository also exposes a lower-level `--benchmark` CLI; it does
+not provide TOML planning, cost approval, chunk resumption, or this repository's
+redacted publication boundary.
 DeepSearchQA's headline metric is macro `f1_score`; its binary accuracy is the
 strict Fully Correct rate. WideSearch's headline metric is `f1_by_item`, not
 binary accuracy.

@@ -39,7 +39,6 @@ import {
 } from './run-spec';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
-const VENDOR_ROOT = join(REPO_ROOT, 'packages', 'bench-harness');
 const DEFAULT_SEARCH_MAX_OUTPUT_TOKENS = 128_000;
 const MANIFEST_VERSION = 1 as const;
 
@@ -149,7 +148,6 @@ function executionFingerprint(): string {
     }
   };
   visit(import.meta.dirname);
-  visit(VENDOR_ROOT);
   return sha256(
     files
       .toSorted()

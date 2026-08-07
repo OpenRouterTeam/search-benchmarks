@@ -10,7 +10,7 @@
     "web": "bun run web.ts"
   },
   "dependencies": {
-    "@openrouter/bench-harness": "file:../../packages/bench-harness"
+    "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#e9801e4ddfd070f30d188ed26ebcda62b3234625"
   },
   "devDependencies": {
     "@types/node": "24.10.0",
