@@ -1,7 +1,7 @@
 # OpenRouter search benchmarks - agent notes
 
 This repository pins the canonical TypeScript benchmark harness as a Git
-dependency and adds a search campaign runner plus local trajectory viewer. It
+dependency and adds a search benchmark runner plus local trajectory viewer. It
 supports BrowseComp, DeepSearchQA, and WideSearch through the public OpenRouter
 Responses API.
 
@@ -12,7 +12,7 @@ artifacts, and `--dry-run` do not make paid inference calls.
 ## Commands
 
 ```bash
-cd apps/search-campaign
+cd apps/search-bench-runner
 bun install
 bun run typecheck
 bun test

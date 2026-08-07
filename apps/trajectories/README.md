@@ -1,6 +1,6 @@
 # Trajectory Reader
 
-> **Runner / harness:** Runs are created by the [search campaign runner](../search-campaign/README.md) using the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** Runs are created by the [search benchmark runner](../search-bench-runner/README.md) using the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
 Local tooling for inspecting raw bench-harness Parquet trajectories. It accepts
 either one `.parquet` file or a complete `runs/ts/<run-id>` directory and

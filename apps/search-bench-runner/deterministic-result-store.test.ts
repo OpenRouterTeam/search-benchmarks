@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe('deterministic result store', () => {
   it('writes exactly the campaign chunk path', async () => {
-    temporary = mkdtempSync(join(tmpdir(), 'search-campaign-store-'));
+    temporary = mkdtempSync(join(tmpdir(), 'search-bench-runner-store-'));
     const path = join(temporary, 'raw', 'dsqa', '000000-000010.parquet');
     const result: RunResult = {
       metrics: { accuracy: 0, totalQuestions: 0, correctAnswers: 0, skippedQuestions: 0 },

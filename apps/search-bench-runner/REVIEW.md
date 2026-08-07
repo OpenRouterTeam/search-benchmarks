@@ -1,4 +1,4 @@
-# Search Campaign Review Checklist
+# Search Benchmark Runner Review Checklist
 
 - Preserve full Responses output items, judge trajectories, answers, and usage
   in Parquet. Do not truncate evidence used to justify a score.

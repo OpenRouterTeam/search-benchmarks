@@ -1,8 +1,8 @@
 {
-  "name": "@openrouter/search-benchmark-campaign",
+  "name": "@openrouter/search-bench-runner",
   "version": "0.1.0",
   "private": true,
-  "description": "Search benchmark campaign runner and publication tooling",
+  "description": "Search benchmark runner and publication tooling",
   "type": "module",
   "scripts": {
     "bench": "bun run bench.ts",

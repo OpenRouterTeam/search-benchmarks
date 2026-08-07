@@ -1,6 +1,6 @@
 # Run Specifications
 
-> **Runner / harness:** These specs are executed by the [search campaign runner](../apps/search-campaign/README.md), which delegates model execution to the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** These specs are executed by the [search benchmark runner](../apps/search-bench-runner/README.md), which delegates model execution to the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
 Commit one TOML spec per reproducible benchmark configuration under its search
 engine subdirectory. A spec is the reviewable source of truth for model,
@@ -23,5 +23,5 @@ reported; use one-task chunks when budget exposure must stay narrow.
 `max_agent_turns` sets both the request-level `max_tool_calls` (agent rounds)
 and the web-search tool's `max_uses` (executed searches). Rounds alone are not a
 search budget, because models issue several searches in parallel within one
-round. See `apps/search-campaign/README.md` for the per-engine enforcement
+round. See `apps/search-bench-runner/README.md` for the per-engine enforcement
 differences.

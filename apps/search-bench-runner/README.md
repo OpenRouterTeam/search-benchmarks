@@ -1,4 +1,4 @@
-# OpenRouter Search Campaign Runner
+# OpenRouter Search Benchmark Runner
 
 > **Runner / harness:** This package owns TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
@@ -16,7 +16,7 @@ deterministic resumable chunks, provenance manifests, redaction, and reports.
 ## Setup
 
 ```bash
-cd apps/search-campaign
+cd apps/search-bench-runner
 bun install
 bun run typecheck
 bun test

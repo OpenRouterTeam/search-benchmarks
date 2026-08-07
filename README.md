@@ -1,6 +1,6 @@
 # OpenRouter Search Benchmarks
 
-> **Runner / harness:** Use the [search campaign runner](apps/search-campaign/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** Use the [search benchmark runner](apps/search-bench-runner/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
 
 Standalone TypeScript tooling for running and inspecting OpenRouter search
 benchmarks. The harness supports BrowseComp, DeepSearchQA, and WideSearch over
@@ -25,7 +25,7 @@ Branch from the reusable harness, keep engine-specific specs under
 
 ```bash
 git switch -c <engine> ayush/harness-port
-cd apps/search-campaign
+cd apps/search-bench-runner
 bun run bench -- --spec ../../run-specs/<engine>/<spec>.toml --run-id <run-id> --dry-run
 ```
 
@@ -35,7 +35,7 @@ branch is the first engine layer and can be used as the stack example.
 
 ## Repository
 
-- [`apps/search-campaign`](apps/search-campaign/README.md) owns TOML run specs,
+- [`apps/search-bench-runner`](apps/search-bench-runner/README.md) owns TOML run specs,
   cost approval, resumable chunks, redacted publication, and the pinned
   `@openrouter/bench-harness` dependency.
 - [`apps/trajectories`](apps/trajectories/README.md) provides terminal and local
@@ -56,7 +56,7 @@ first. After merge, update the exact Git commit in both app manifests and
 regenerate their locks:
 
 ```bash
-cd apps/search-campaign && bun install
+cd apps/search-bench-runner && bun install
 cd ../trajectories && bun install
 ```
 
@@ -71,7 +71,7 @@ Requirements:
 - A Hugging Face token when a dataset requires authenticated access
 
 ```bash
-cd apps/search-campaign
+cd apps/search-bench-runner
 bun install
 bun run typecheck
 bun test
@@ -90,7 +90,7 @@ bun test
 Start with a committed TOML spec and a free dry run:
 
 ```bash
-cd apps/search-campaign
+cd apps/search-bench-runner
 bun run bench -- \
   --spec ../../run-specs/example-partner-search.toml \
   --run-id partner-search-smoke \
