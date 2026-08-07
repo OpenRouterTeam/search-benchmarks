@@ -1,0 +1,26 @@
+version = 1
+title = "GPT-5.6 Sol with Exa search, 25-turn calibration"
+description = "One task per suite to measure cost before the 100-task run."
+model = "openai/gpt-5.6-sol"
+suites = ["browsecomp", "dsqa", "widesearch"]
+start = 0
+limit = 1
+epochs = 1
+concurrency = 15
+chunk_size = 1
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "exa"
+max_agent_turns = 25
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false
