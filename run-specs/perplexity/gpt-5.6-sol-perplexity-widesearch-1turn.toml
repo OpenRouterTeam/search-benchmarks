@@ -8,7 +8,7 @@ limit = 100
 epochs = 1
 concurrency = 2
 chunk_size = 10
-budget_usd = 55
+budget_usd = 25
 
 [inference]
 temperature = 0
