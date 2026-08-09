@@ -1,6 +1,6 @@
 # Run Specifications
 
-> **Runner / harness:** These specs are executed by the [search benchmark runner](../apps/search-bench-runner/README.md), which delegates model execution to the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** These specs are executed by the [search benchmark runner](../apps/search-bench-runner/README.md), which delegates model execution to the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/77483ab4d585baeaaacd4dab9f4f60cc7823e65b).
 
 Commit one TOML spec per reproducible benchmark configuration under its search
 engine subdirectory. A spec is the reviewable source of truth for model,
