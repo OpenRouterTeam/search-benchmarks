@@ -14,11 +14,12 @@ hosted partner artifact. Use `published-runs/` for sanitized sharing.
 
 ```bash
 bun install
-bun run web -- --input demo.parquet --open
+bun run web -- --input ../../runs/ts --open
 ```
 
-`demo.parquet` contains synthetic data and is safe to commit. Replace it with a
-real Parquet file or `runs/ts/<run-id>` directory when inspecting a benchmark.
+The `perplexity` branch tracks the corrected 1-, 5-, and 25-turn WideSearch
+runs under `runs/ts`. Use `demo.parquet` for synthetic data, or replace the
+input with one `runs/ts/<run-id>` directory to inspect a single run.
 
 ## Terminal
 

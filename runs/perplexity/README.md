@@ -2,6 +2,10 @@
 
 > **Historical provenance:** These trajectories were generated before the canonical harness dependency merged in PR #6. DSQA uses strict Fully Correct accuracy rather than macro F1, and WideSearch uses the `2025-01-01` grading reference date. Preserve the run artifacts byte-for-byte; reruns under current `main` are a different evaluation series.
 
+The corrected WideSearch-only reruns are tracked separately under
+[`runs/ts`](../ts/README.md) and are the default trajectory viewer input on
+this branch.
+
 This directory contains the three complete 100-task Perplexity ladder runs used
 by the local trajectory viewer:
 
