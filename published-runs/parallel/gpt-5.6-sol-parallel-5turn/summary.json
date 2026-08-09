@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "runId": "gpt-5.6-sol-parallel-5turn",
+  "title": "GPT-5.6 Sol with Parallel search, 5 turns",
+  "status": "complete",
+  "generatedAt": "2026-08-03T03:57:25.360Z",
+  "model": "openai/gpt-5.6-sol",
+  "totalCost": 53.9654585,
+  "totalTokens": 7028733,
+  "suites": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "primaryMetric": "accuracy",
+      "score": 0.45,
+      "accuracy": 0.45,
+      "selectedTasks": 100,
+      "completedTasks": 100,
+      "correctAnswers": 45,
+      "skippedQuestions": 0,
+      "inputTokens": 2387534,
+      "outputTokens": 278985,
+      "totalTokens": 2666519,
+      "reasoningTokens": 235613,
+      "generationTimeMs": 6191423,
+      "totalCost": 17.4447985,
+      "metrics": {
+        "mean_stated_confidence": 76.05,
+        "samples_judged": 100
+      },
+      "chunks": 7
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "primaryMetric": "accuracy",
+      "score": 0.52,
+      "accuracy": 0.52,
+      "selectedTasks": 100,
+      "completedTasks": 100,
+      "correctAnswers": 52,
+      "skippedQuestions": 0,
+      "inputTokens": 1793975,
+      "outputTokens": 220290,
+      "totalTokens": 2014265,
+      "reasoningTokens": 166857,
+      "generationTimeMs": 3831964,
+      "totalCost": 13.230630750000001,
+      "metrics": {},
+      "chunks": 7
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "primaryMetric": "f1_by_item",
+      "score": 0.6591877054283962,
+      "accuracy": 0.09,
+      "selectedTasks": 100,
+      "completedTasks": 100,
+      "correctAnswers": 9,
+      "skippedQuestions": 0,
+      "inputTokens": 1656539,
+      "outputTokens": 691410,
+      "totalTokens": 2347949,
+      "reasoningTokens": 349514,
+      "generationTimeMs": 8903242,
+      "totalCost": 23.29002925,
+      "metrics": {
+        "success_rate": 0.09,
+        "precision_by_row": 0.4642787796111803,
+        "recall_by_row": 0.4430278595469971,
+        "f1_by_row": 0.44633059388415464,
+        "precision_by_item": 0.6850816304754759,
+        "recall_by_item": 0.6555961682493157,
+        "f1_by_item": 0.6591877054283962
+      },
+      "chunks": 7
+    }
+  }
+}

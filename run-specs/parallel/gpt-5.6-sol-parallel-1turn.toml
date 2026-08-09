@@ -1,0 +1,34 @@
+version = 1
+title = "GPT-5.6 Sol with Parallel search, 1 turn"
+description = "Three-suite OpenRouter search benchmark at a one-turn search budget."
+model = "openai/gpt-5.6-sol"
+suites = ["browsecomp", "dsqa", "widesearch"]
+start = 0
+limit = 100
+epochs = 1
+concurrency = 15
+chunk_size = 15
+budget_usd = 105
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "parallel"
+max_agent_turns = 1
+
+# Measured from gpt-5.6-sol-parallel-1turn-calibration (one task per suite).
+# The budget allows roughly 4x the one-task planning estimate.
+[cost_estimates]
+browsecomp = 0.05384575
+dsqa = 0.05853325
+widesearch = 0.141172
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false
