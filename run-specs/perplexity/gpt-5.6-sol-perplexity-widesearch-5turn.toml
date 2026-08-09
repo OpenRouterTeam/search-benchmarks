@@ -1,0 +1,32 @@
+version = 1
+title = "GPT-5.6 Sol with Perplexity search, WideSearch, 5 turns"
+description = "WideSearch rerun at a five-turn search budget with corrected judge verdict handling."
+model = "openai/gpt-5.6-sol"
+suites = ["widesearch"]
+start = 0
+limit = 100
+epochs = 1
+concurrency = 2
+chunk_size = 10
+budget_usd = 95
+
+[inference]
+temperature = 0
+max_retries = 10
+provider_only = ["OpenAI"]
+allow_fallbacks = false
+
+[search]
+surface = "server-tool"
+engine = "perplexity"
+max_agent_turns = 5
+
+[cost_estimates]
+browsecomp = 0.1397875
+dsqa = 0.1718511
+widesearch = 0.231873
+
+[publish]
+include_inputs = false
+include_answers = false
+include_search_queries = false
