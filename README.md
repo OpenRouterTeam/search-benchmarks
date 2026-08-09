@@ -1,6 +1,6 @@
 # OpenRouter Search Benchmarks
 
-> **Runner / harness:** Use the [search benchmark runner](apps/search-bench-runner/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** Use the [search benchmark runner](apps/search-bench-runner/README.md) for TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/77483ab4d585baeaaacd4dab9f4f60cc7823e65b).
 
 Standalone TypeScript tooling for running and inspecting OpenRouter search
 benchmarks. The harness supports BrowseComp, DeepSearchQA, and WideSearch over

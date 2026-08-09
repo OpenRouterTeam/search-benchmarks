@@ -1,6 +1,6 @@
 # OpenRouter Search Benchmark Runner
 
-> **Runner / harness:** This package owns TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/e9801e4ddfd070f30d188ed26ebcda62b3234625).
+> **Runner / harness:** This package owns TOML specs, cost approval, resumable runs, and publication. Model execution comes from the commit-pinned [OpenRouter benchmark harness](https://github.com/OpenRouterTeam/benchmark-harness/tree/77483ab4d585baeaaacd4dab9f4f60cc7823e65b).
 
 Search campaign orchestration for three benchmark suites:
 

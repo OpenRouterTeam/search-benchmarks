@@ -11,7 +11,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#e9801e4ddfd070f30d188ed26ebcda62b3234625",
+    "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#77483ab4d585baeaaacd4dab9f4f60cc7823e65b",
     "effect": "3.20.0",
     "smol-toml": "1.6.1",
     "zod": "4.4.3"
