@@ -5,7 +5,7 @@
     "": {
       "name": "@openrouter/bench-harness",
       "dependencies": {
-        "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#e9801e4ddfd070f30d188ed26ebcda62b3234625",
+        "@openrouter/bench-harness": "git+https://github.com/OpenRouterTeam/benchmark-harness.git#77483ab4d585baeaaacd4dab9f4f60cc7823e65b",
         "effect": "3.20.0",
         "smol-toml": "1.6.1",
         "zod": "4.4.3",
@@ -59,7 +59,7 @@
 
     "@nodable/entities": ["@nodable/entities@3.0.0", "", {}, "sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw=="],
 
-    "@openrouter/bench-harness": ["@openrouter/bench-harness@github:OpenRouterTeam/benchmark-harness#e9801e4", { "dependencies": { "@effect/platform": "0.95.0", "@google-cloud/storage": "7.19.0", "@openrouter/sdk": "1.2.9", "change-case": "5.4.4", "chrono-node": "2.9.0", "cli-progress": "3.12.0", "csv-parse": "5.6.0", "effect": "3.20.0", "hyparquet": "1.26.1", "hyparquet-writer": "0.16.1", "modal": "0.8.0", "smol-toml": "1.6.1", "yaml": "2.8.3", "zod": "4.4.3" } }, "OpenRouterTeam-benchmark-harness-e9801e4", "sha512-uUpMbKCErGxs3Yi+QBXoNMRRAUywLcb9pV3sO7S30KS1+jT7IPiAAKuuwXQdeihnsT0N+4UzvhYpoUeTAwO+Gw=="],
+    "@openrouter/bench-harness": ["@openrouter/bench-harness@github:OpenRouterTeam/benchmark-harness#77483ab", { "dependencies": { "@effect/platform": "0.95.0", "@google-cloud/storage": "7.19.0", "@openrouter/sdk": "1.2.9", "change-case": "5.4.4", "chrono-node": "2.9.0", "cli-progress": "3.12.0", "csv-parse": "5.6.0", "effect": "3.20.0", "hyparquet": "1.26.1", "hyparquet-writer": "0.16.1", "modal": "0.8.0", "smol-toml": "1.6.1", "yaml": "2.8.3", "zod": "4.4.3" } }, "OpenRouterTeam-benchmark-harness-77483ab", "sha512-EeKOqjjx7Tg73SAB66Kyx0dqBd73Sdk4ViyLYLTGWrZgyxBGHv9EgU5iNyk/EiTHhaN4N5hArxSTxxcaRjCSpQ=="],
 
     "@openrouter/sdk": ["@openrouter/sdk@1.2.9", "", { "dependencies": { "zod": "^3.25.0 || ^4.0.0" } }, "sha512-yVYYmbUNVkeR2edsrkYvIz5/Ss3mB70bnJYquyPi6vbSkn0pcN3m/oI8zbdktsQZXFbKwJYBKX1IInNI/rfTxA=="],
 
