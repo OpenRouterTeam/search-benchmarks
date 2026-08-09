@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "run_id": "gpt-5.6-sol-perplexity-widesearch-5turn-v2",
+  "status": "complete",
+  "created_at": "2026-08-09T19:18:22.732Z",
+  "updated_at": "2026-08-09T20:04:53.909Z",
+  "source_spec_sha256": "4fb2f3084d9f729da6462da5fcdbb20337d2b30126b04d1f007c864f6917e5a7",
+  "execution_fingerprint": "39fbe2ac5be3f63d5a30d3eed159eb1e77fcd21eb6d16f32fbdf7a66353d15e0",
+  "harness_changes": [],
+  "repository_commit": "bb9c1f7a7ca8d09f7844933d6405351cc3e05f33",
+  "repository_dirty": false,
+  "estimated_cost_usd": 23.1873,
+  "approved_cost_usd": 40,
+  "effective_concurrency": 10,
+  "resolved_configs": {
+    "browsecomp": null,
+    "dsqa": null,
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "maxRetries": 10,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "perplexity",
+        "maxAgentTurns": 5
+      },
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false
+    }
+  },
+  "dataset_contracts": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "source": "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv",
+      "sha256": "7b24471cd5b3eb2a46830a14802b5c029ea62f488ff75a0f88af7923d1454abf",
+      "rows": 1266,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "openai/gpt-4.1"
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "source": "https://huggingface.co/datasets/google/deepsearchqa/resolve/b2623f8653065c2672de6d941fc5434cd652376c/DSQA-full.csv",
+      "revision": "b2623f8653065c2672de6d941fc5434cd652376c",
+      "sha256": "25d48dcf7efa872e5467032e8b8eedf38d301f59a252d0da95cda584baa78396",
+      "rows": 900,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "google/gemini-2.5-flash",
+      "judgePromptSource": "https://www.kaggle.com/code/andrewmingwang/deepsearchqa-starter-code?scriptVersionId=285323691",
+      "judgePromptSha256": "9bdd0b9198244de8a78bf256b5332805d00c140e85b713f0e1878b3e4aa605a0"
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "source": "https://huggingface.co/datasets/ByteDance-Seed/WideSearch/resolve/6531a7e5b497d44c8912407e0cb3dc95bd98cc09/widesearch.jsonl",
+      "revision": "ByteDance-Seed/WideSearch@6531a7e5b497d44c8912407e0cb3dc95bd98cc09",
+      "sha256": "bba28ec51dce28fa617f82617d88fcd6bdd4cd4d7f0a4d70db07d7fa8a90bdf4",
+      "rows": 200,
+      "promptSha256": "14061a8a9476ecd7f5b5a4ca3de70248bd9a46f6ff963992a813538382ef23e8",
+      "judgeModel": "openai/gpt-4.1",
+      "gradingReferenceDate": "2026-07-18"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "suite": "widesearch",
+      "range": [
+        0,
+        10
+      ],
+      "filename": "000000-000010.parquet",
+      "sha256": "15f5e4ee87807cf5c3b5bb5dbe705c4882ae824240e21fa2326099d7c6c87dfc",
+      "bytes": 661607
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        10,
+        20
+      ],
+      "filename": "000010-000020.parquet",
+      "sha256": "52333d2ba255da9a29c0b0df34d0933eb0dd85e172547f18ffbb6c270f46209e",
+      "bytes": 622855
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        20,
+        30
+      ],
+      "filename": "000020-000030.parquet",
+      "sha256": "907971cae41e9ab88a161a6209da13302a1b930583604f733b85b9db01444b38",
+      "bytes": 476353
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        30,
+        40
+      ],
+      "filename": "000030-000040.parquet",
+      "sha256": "7ed054b4a55d2fa28a603fdbaff1bf5323b3aaef8a65f7df104b9731171e6193",
+      "bytes": 608811
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        40,
+        50
+      ],
+      "filename": "000040-000050.parquet",
+      "sha256": "07a08fc73d0cb199a9d439e83dba266cc2aa03e8094e4a6a3280d15d9aa67508",
+      "bytes": 711429
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        50,
+        60
+      ],
+      "filename": "000050-000060.parquet",
+      "sha256": "778818b60776c7400adffc7c44c5d37be31093f8d84942d096402544bec0936a",
+      "bytes": 674866
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        60,
+        70
+      ],
+      "filename": "000060-000070.parquet",
+      "sha256": "9b8bebf6bd81e13e0555990e1ca40ad40b4d4df727e6f3706676e29bf4453a67",
+      "bytes": 603604
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        70,
+        80
+      ],
+      "filename": "000070-000080.parquet",
+      "sha256": "35bb0151850e512e8da985ebe0ce26cdd9f72afc54281c84233bc68c548d0e77",
+      "bytes": 649808
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        80,
+        90
+      ],
+      "filename": "000080-000090.parquet",
+      "sha256": "7ded3f991cb2741416f6b50985e52e0820d10671d7232c9d1ffd95881605d794",
+      "bytes": 641159
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        90,
+        100
+      ],
+      "filename": "000090-000100.parquet",
+      "sha256": "78b9d71ee42fe9efa7668ffc26ed9877ce36a6a9ff4e081010d2929231b1d412",
+      "bytes": 698714
+    }
+  ]
+}

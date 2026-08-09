@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "runId": "gpt-5.6-sol-perplexity-widesearch-1turn-v2",
+  "title": "GPT-5.6 Sol with Perplexity search, WideSearch, 1 turn",
+  "status": "complete",
+  "generatedAt": "2026-08-09T19:56:12.530Z",
+  "model": "openai/gpt-5.6-sol",
+  "totalCost": 22.2759575,
+  "totalTokens": 1980649,
+  "suites": {
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "primaryMetric": "f1_by_item",
+      "score": 0.7731782692677406,
+      "accuracy": 0.16,
+      "selectedTasks": 100,
+      "completedTasks": 100,
+      "correctAnswers": 16,
+      "skippedQuestions": 0,
+      "inputTokens": 1450626,
+      "outputTokens": 530023,
+      "totalTokens": 1980649,
+      "reasoningTokens": 209003,
+      "generationTimeMs": 5671045,
+      "totalCost": 22.2759575,
+      "metrics": {
+        "success_rate": 0.16,
+        "precision_by_row": 0.5369417605035063,
+        "recall_by_row": 0.5225214266324849,
+        "f1_by_row": 0.5245526031884813,
+        "precision_by_item": 0.7962686471888503,
+        "recall_by_item": 0.7696620991438795,
+        "f1_by_item": 0.7731782692677406
+      },
+      "chunks": 10
+    }
+  }
+}
