@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "run_id": "gpt-5.6-sol-exa-25turn-calibration",
+  "status": "complete",
+  "created_at": "2026-08-03T01:51:57.703Z",
+  "updated_at": "2026-08-03T01:55:41.658Z",
+  "source_spec_sha256": "0782b9dd489c2334106ccb0f41653830f78394c924bac9832c7241a5386f1355",
+  "execution_fingerprint": "b79d48558bd7a8057e47c50d20bf03899b14a3cf7f43a387cf955c933ab025cf",
+  "harness_changes": [],
+  "repository_commit": "fb1f5c771ae757d958b0abf4c6ffdc9b9059df7a",
+  "repository_dirty": true,
+  "estimated_cost_usd": null,
+  "approved_cost_usd": 2,
+  "effective_concurrency": 15,
+  "resolved_configs": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 25,
+        "maxTotalResults": 125
+      },
+      "maxRetries": 10
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 25,
+        "maxTotalResults": 125
+      },
+      "maxRetries": 10
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "model": "openai/gpt-5.6-sol",
+      "temperature": 0,
+      "providerOnly": [
+        "OpenAI"
+      ],
+      "allowFallbacks": false,
+      "lane": {
+        "webSearch": "server-tool",
+        "engine": "exa",
+        "maxAgentTurns": 25,
+        "maxTotalResults": 125
+      },
+      "maxRetries": 10
+    }
+  },
+  "dataset_contracts": {
+    "browsecomp": {
+      "benchmarkId": "search_browsecomp",
+      "source": "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv",
+      "sha256": "7b24471cd5b3eb2a46830a14802b5c029ea62f488ff75a0f88af7923d1454abf",
+      "rows": 1266,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "openai/gpt-4.1"
+    },
+    "dsqa": {
+      "benchmarkId": "search_dsqa",
+      "source": "https://huggingface.co/datasets/google/deepsearchqa/resolve/b2623f8653065c2672de6d941fc5434cd652376c/DSQA-full.csv",
+      "sha256": "25d48dcf7efa872e5467032e8b8eedf38d301f59a252d0da95cda584baa78396",
+      "rows": 900,
+      "promptSha256": "2250aa21b4a98647dbcfed62a30261eb914016c81cb33e7694c15859205de78f",
+      "judgeModel": "google/gemini-2.5-flash"
+    },
+    "widesearch": {
+      "benchmarkId": "search_widesearch",
+      "source": "https://huggingface.co/datasets/ByteDance-Seed/WideSearch/resolve/6531a7e5b497d44c8912407e0cb3dc95bd98cc09/widesearch.jsonl",
+      "revision": "ByteDance-Seed/WideSearch@6531a7e5b497d44c8912407e0cb3dc95bd98cc09",
+      "sha256": "bba28ec51dce28fa617f82617d88fcd6bdd4cd4d7f0a4d70db07d7fa8a90bdf4",
+      "rows": 200,
+      "promptSha256": "14061a8a9476ecd7f5b5a4ca3de70248bd9a46f6ff963992a813538382ef23e8",
+      "judgeModel": "openai/gpt-4.1",
+      "gradingReferenceDate": "2025-01-01T00:00:00.000Z"
+    }
+  },
+  "raw_artifacts": [
+    {
+      "suite": "browsecomp",
+      "range": [
+        0,
+        1
+      ],
+      "filename": "000000-000001.parquet",
+      "sha256": "3612c0c7d7d8fa16f99d78e4d38fc9abc65d9179ef38d81bbd8447277f378c66",
+      "bytes": 58217
+    },
+    {
+      "suite": "dsqa",
+      "range": [
+        0,
+        1
+      ],
+      "filename": "000000-000001.parquet",
+      "sha256": "8c349eaab158adf0b11b4748647f3fedf50d0022d336c619e34170b433029670",
+      "bytes": 90381
+    },
+    {
+      "suite": "widesearch",
+      "range": [
+        0,
+        1
+      ],
+      "filename": "000000-000001.parquet",
+      "sha256": "5ca3c2f300c8cf426895963ad297c8181b3b94b94e55ed751a70cfdb61adb7f3",
+      "bytes": 111047
+    }
+  ]
+}
