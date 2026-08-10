@@ -21,6 +21,11 @@ export const RUN_SPEC_VERSION = 1 as const;
 export const SUITE_NAMES = ['browsecomp', 'dsqa', 'widesearch'] as const;
 export type SuiteName = (typeof SUITE_NAMES)[number];
 
+const StableIdSelectionSchema = z.object({
+  start: z.number().int().min(0),
+  expected_ids: z.array(z.string().min(1)).min(1),
+}).strict();
+
 const WebFetchSpecSchema = z.object({
   engine: z.enum(['auto', 'native', 'openrouter', 'firecrawl', 'exa', 'parallel']).optional(),
   max_uses: z.number().int().positive().optional(),
@@ -35,6 +40,11 @@ const RunSpecSchema = z.object({
   suites: z.array(z.enum(SUITE_NAMES)).min(1),
   start: z.number().int().min(0).default(0),
   limit: z.number().int().positive().optional(),
+  selection: z.object({
+    browsecomp: StableIdSelectionSchema.optional(),
+    dsqa: StableIdSelectionSchema.optional(),
+    widesearch: StableIdSelectionSchema.optional(),
+  }).strict().optional(),
   epochs: z.number().int().positive().default(1),
   concurrency: z.number().int().positive().default(5),
   chunk_size: z.number().int().positive().default(10),
@@ -159,7 +169,17 @@ export function parseRunSpec(text: string): RunSpec {
   if (new Set(parsed.data.suites).size !== parsed.data.suites.length) {
     throw new Error('Invalid run spec: suites must not contain duplicates');
   }
+  if (parsed.data.selection !== undefined && parsed.data.limit !== undefined) {
+    throw new Error('Invalid run spec: selection cannot be combined with limit');
+  }
   for (const suite of parsed.data.suites) {
+    const selection = parsed.data.selection?.[suite];
+    if (parsed.data.selection !== undefined && selection === undefined) {
+      throw new Error(`Invalid run spec: selection.${suite} is required`);
+    }
+    if (selection !== undefined) {
+      validateStableIdSelection(suite, selection.start, selection.expected_ids);
+    }
     if (selectedTaskCount(parsed.data, suite) === 0) {
       throw new Error(`Invalid run spec: start is outside the ${suite} dataset`);
     }
@@ -277,8 +297,57 @@ export function benchmarkConfigForSuite(
 }
 
 export function selectedTaskCount(spec: RunSpec, suite: SuiteName): number {
+  const selection = spec.selection?.[suite];
+  if (selection !== undefined) {
+    return selection.expected_ids.length;
+  }
   const available = Math.max(0, DATASET_CONTRACTS[suite].rows - spec.start);
   return Math.min(spec.limit ?? available, available);
+}
+
+export interface SuiteSelection {
+  readonly start: number;
+  readonly end: number;
+  readonly expectedIds: readonly string[];
+}
+
+export function stableIdForIndex(suite: SuiteName, index: number): string {
+  if (suite === 'browsecomp') {
+    return `browsecomp-${index}`;
+  }
+  if (suite === 'dsqa') {
+    return `dsqa-${index}`;
+  }
+  const language = index < 100 ? 'en' : 'zh';
+  return `ws_${language}_${String((index % 100) + 1).padStart(3, '0')}`;
+}
+
+function validateStableIdSelection(suite: SuiteName, start: number, expectedIds: readonly string[]): void {
+  const end = start + expectedIds.length;
+  if (end > DATASET_CONTRACTS[suite].rows) {
+    throw new Error(`Invalid run spec: selection.${suite} exceeds the pinned dataset`);
+  }
+  const expected = Array.from({ length: expectedIds.length }, (_, offset) => stableIdForIndex(suite, start + offset));
+  if (stableJson(expectedIds) !== stableJson(expected)) {
+    throw new Error(`Invalid run spec: selection.${suite}.expected_ids do not match pinned absolute identities`);
+  }
+}
+
+export function suiteSelection(spec: RunSpec, suite: SuiteName): SuiteSelection {
+  const explicit = spec.selection?.[suite];
+  if (explicit !== undefined) {
+    return {
+      start: explicit.start,
+      end: explicit.start + explicit.expected_ids.length,
+      expectedIds: explicit.expected_ids,
+    };
+  }
+  const count = selectedTaskCount(spec, suite);
+  return {
+    start: spec.start,
+    end: spec.start + count,
+    expectedIds: Array.from({ length: count }, (_, offset) => stableIdForIndex(suite, spec.start + offset)),
+  };
 }
 
 export function estimatedRunCost(spec: RunSpec): number | undefined {

@@ -7,6 +7,9 @@ import {
   parseRunSpec,
   resolveMaxTotalResults,
   selectedTaskCount,
+  sha256,
+  stableIdForIndex,
+  suiteSelection,
 } from './run-spec';
 
 const SPEC = `
@@ -84,6 +87,30 @@ describe('run spec', () => {
       judgePromptSha256:
         '9bdd0b9198244de8a78bf256b5332805d00c140e85b713f0e1878b3e4aa605a0',
     });
+  });
+
+  it('pins a disjoint stable-id selection to absolute dataset identities', () => {
+    const ids = Array.from({ length: 200 }, (_, offset) => `browsecomp-${100 + offset}`);
+    const selection = `[selection.browsecomp]\nstart = 100\nexpected_ids = [${ids.map((id) => `"${id}"`).join(', ')}]\n`;
+    const spec = parseRunSpec(
+      SPEC.replace('suites = ["browsecomp", "widesearch"]', 'suites = ["browsecomp"]')
+        .replace('start = 2\nlimit = 3\n', '') + selection,
+    );
+    expect(suiteSelection(spec, 'browsecomp')).toEqual({ start: 100, end: 300, expectedIds: ids });
+    expect(selectedTaskCount(spec, 'browsecomp')).toBe(200);
+    expect(sha256(`${ids.join('\n')}\n`)).toHaveLength(64);
+    expect(stableIdForIndex('dsqa', 299)).toBe('dsqa-299');
+  });
+
+  it('rejects an incorrect or incomplete stable-id selection contract', () => {
+    const selected = `[selection.browsecomp]\nstart = 100\nexpected_ids = ["browsecomp-100", "browsecomp-102"]\n`;
+    expect(() =>
+      parseRunSpec(
+        SPEC.replace('suites = ["browsecomp", "widesearch"]', 'suites = ["browsecomp"]')
+          .replace('start = 2\nlimit = 3\n', '') + selected,
+      ),
+    ).toThrow('do not match pinned absolute identities');
+    expect(() => parseRunSpec(SPEC + selected)).toThrow('cannot be combined with limit');
   });
 });
 

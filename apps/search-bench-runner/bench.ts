@@ -36,6 +36,7 @@ import {
   selectedTaskCount,
   sha256,
   stableJson,
+  suiteSelection,
 } from './run-spec';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
@@ -194,11 +195,10 @@ function atomicWriteJson(path: string, value: unknown): void {
 }
 
 function chunkRanges(spec: RunSpec, suite: SuiteName): readonly { start: number; end: number }[] {
-  const count = selectedTaskCount(spec, suite);
-  const end = spec.start + count;
+  const selection = suiteSelection(spec, suite);
   const ranges: { start: number; end: number }[] = [];
-  for (let start = spec.start; start < end; start += spec.chunk_size) {
-    ranges.push({ start, end: Math.min(start + spec.chunk_size, end) });
+  for (let start = selection.start; start < selection.end; start += spec.chunk_size) {
+    ranges.push({ start, end: Math.min(start + spec.chunk_size, selection.end) });
   }
   return ranges;
 }
@@ -210,6 +210,7 @@ function chunkFilename(start: number, end: number): string {
 async function readChunk(
   path: string,
   config: SearchBenchmarkConfig,
+  expectedIds: readonly string[],
   expectedRows: number,
 ): Promise<{ rows: Awaited<ReturnType<typeof readResultRows>>; summary: ChunkResultSummary }> {
   const bytes = readFileSync(path);
@@ -224,6 +225,17 @@ async function readChunk(
   const persistedConfig = first.benchmark_config == null ? null : JSON.parse(first.benchmark_config);
   if (stableJson(persistedConfig) !== stableJson(config)) {
     throw new Error(`Invalid resumable chunk ${path}: benchmark config mismatch`);
+  }
+  const observedIds = rows.map((row) => row.sample_id);
+  if (stableJson(observedIds) !== stableJson(expectedIds)) {
+    throw new Error(`Invalid resumable chunk ${path}: stable-id selection mismatch`);
+  }
+  if (rows.some((row) => row.score_value === 'skipped' || row.total_tokens <= 0)) {
+    throw new Error(`Invalid resumable chunk ${path}: skipped or zero-use sample`);
+  }
+  const failureText = rows.flatMap((row) => [row.explanation, row.metadata]).filter((value): value is string => value !== null);
+  if (failureText.some((value) => /(?:HTTP\s*)?402|payment required|insufficient credits/iu.test(value))) {
+    throw new Error(`Invalid resumable chunk ${path}: payment failure`);
   }
   const summary = summarizeChunkRows(rows);
   if (summary === null) {
@@ -314,8 +326,9 @@ function printPlan(spec: RunSpec, runId: string, concurrency: number): void {
     const tasks = selectedTaskCount(spec, suite);
     const chunks = chunkRanges(spec, suite).length;
     const rate = spec.cost_estimates?.[suite];
+    const selection = suiteSelection(spec, suite);
     process.stdout.write(
-      `  ${suite.padEnd(11)} tasks=${tasks} chunks=${chunks} estimated=${rate === undefined ? 'calibration-required' : `$${(tasks * spec.epochs * rate).toFixed(4)}`}\n`,
+      `  ${suite.padEnd(11)} tasks=${tasks} range=${selection.start}:${selection.end} ids_sha256=${sha256(`${selection.expectedIds.join('\n')}\n`)} chunks=${chunks} estimated=${rate === undefined ? 'calibration-required' : `$${(tasks * spec.epochs * rate).toFixed(4)}`}\n`,
     );
   }
   process.stdout.write(`Total estimate: ${estimate === undefined ? 'calibration-required' : `$${estimate.toFixed(4)}`}\n`);
@@ -451,11 +464,13 @@ async function run(args: CliArgs): Promise<void> {
         const suiteDir = join(runDir, 'raw', suite);
         const artifactPath = join(suiteDir, chunkFilename(range.start, range.end));
         const expectedRows = (range.end - range.start) * spec.epochs;
+        const selection = suiteSelection(spec, suite);
+        const expectedIds = selection.expectedIds.slice(range.start - selection.start, range.end - selection.start);
         const existing = manifest.chunks.find(
           (chunk) => chunk.suite === suite && chunk.start === range.start && chunk.end === range.end,
         );
         if (existsSync(artifactPath)) {
-          const { summary } = await readChunk(artifactPath, config, expectedRows);
+          const { summary } = await readChunk(artifactPath, config, expectedIds, expectedRows);
           const bytes = readFileSync(artifactPath);
           if (existing !== undefined && existing.sha256 !== sha256(bytes)) {
             throw new Error(`Resumable chunk checksum mismatch: ${relative(REPO_ROOT, artifactPath)}`);
@@ -527,7 +542,7 @@ async function run(args: CliArgs): Promise<void> {
         if (result.right.resultsPath === null || !existsSync(artifactPath)) {
           throw new Error(`${suite} ${range.start}:${range.end} completed without a persisted artifact`);
         }
-        const { summary } = await readChunk(artifactPath, config, expectedRows);
+        const { summary } = await readChunk(artifactPath, config, expectedIds, expectedRows);
         const bytes = readFileSync(artifactPath);
         const record: RunChunkRecord = {
           suite,

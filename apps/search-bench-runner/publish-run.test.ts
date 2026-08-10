@@ -7,7 +7,7 @@ import { join, relative, resolve } from 'node:path';
 
 import { ScoreValue } from '@openrouter/bench-harness/core';
 import { runResultToParquet } from '@openrouter/bench-harness/parquet';
-import { publishedRunDirectory, publishRunBundle } from './publish-run';
+import { mergeCohortBundles, publishedRunDirectory, publishRunBundle } from './publish-run';
 import { benchmarkConfigForSuite, DATASET_CONTRACTS, parseRunSpec, sha256 } from './run-spec';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
@@ -330,5 +330,64 @@ describe('published run bundle', () => {
     /* Opted in, so the body keeps its text-bearing fields. */
     expect(redacted).toContain('the system prompt');
     expect(redacted).toContain('"input":[{"role":"user","content":"the question"}]');
+  });
+});
+
+describe('offline cumulative cohorts', () => {
+  const suite = (selectedTasks: number, score: number, cost: number) => ({
+    benchmarkId: 'search_browsecomp',
+    primaryMetric: 'accuracy' as const,
+    score,
+    accuracy: score,
+    selectedTasks,
+    completedTasks: selectedTasks,
+    correctAnswers: Math.round(selectedTasks * score),
+    skippedQuestions: 0,
+    inputTokens: selectedTasks * 10,
+    outputTokens: selectedTasks * 2,
+    totalTokens: selectedTasks * 12,
+    reasoningTokens: selectedTasks,
+    generationTimeMs: selectedTasks * 100,
+    totalCost: cost,
+    metrics: { mean_stated_confidence: score * 100, samples_judged: selectedTasks },
+    chunks: selectedTasks / 10,
+  });
+  const cohort = (label: string, start: number, count: number, score: number, cost: number) => ({
+    label,
+    summary: {
+      version: 1 as const,
+      runId: label,
+      title: label,
+      status: 'complete' as const,
+      generatedAt: '2026-08-10T00:00:00Z',
+      model: 'openai/gpt-5.6-sol',
+      totalCost: cost,
+      totalTokens: count * 12,
+      suites: { browsecomp: suite(count, score, cost) },
+    },
+    samples: Array.from({ length: count }, (_, offset) => ({
+      suite: 'browsecomp' as const,
+      sampleId: `browsecomp-${start + offset}`,
+      epoch: 0,
+      score: offset < count * score ? 'correct' : 'incorrect',
+      citations: [],
+      searchCalls: [],
+    })),
+  });
+
+  it('merges disjoint stable IDs and denominator-weights metrics', () => {
+    const merged = mergeCohortBundles(cohort('original', 0, 100, 0.4, 10), cohort('incremental', 100, 200, 0.7, 30));
+    expect(merged.summary.suites.browsecomp?.completedTasks).toBe(300);
+    expect(merged.summary.suites.browsecomp?.score).toBeCloseTo(0.6, 12);
+    expect(merged.summary.suites.browsecomp?.totalCost).toBe(40);
+    expect(merged.summary.suites.browsecomp?.metrics.samples_judged).toBe(300);
+    expect(merged.samples).toHaveLength(300);
+    expect(merged.validation.browsecomp).toMatchObject({ original: 100, incremental: 200, cumulative: 300, overlap: 0 });
+  });
+
+  it('rejects overlap instead of double-counting a stable ID', () => {
+    expect(() =>
+      mergeCohortBundles(cohort('original', 0, 100, 0.4, 10), cohort('incremental', 99, 200, 0.7, 30)),
+    ).toThrow('stable-ID validation failed');
   });
 });

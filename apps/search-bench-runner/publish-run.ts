@@ -27,6 +27,7 @@ import {
   selectedTaskCount,
   sha256,
   stableJson,
+  suiteSelection,
 } from './run-spec';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..');
@@ -72,7 +73,7 @@ export interface PublishedSummary {
   readonly suites: Readonly<Partial<Record<SuiteName, SuiteSummary>>>;
 }
 
-interface RedactedSample {
+export interface RedactedSample {
   readonly suite: SuiteName;
   readonly sampleId: string;
   readonly epoch: number;
@@ -82,6 +83,12 @@ interface RedactedSample {
   readonly citations: readonly { readonly url: string; readonly title: string }[];
   readonly searchCalls: readonly Readonly<Record<string, unknown>>[];
   readonly requestBody?: Readonly<Record<string, unknown>>;
+}
+
+export interface CohortBundle {
+  readonly label: string;
+  readonly summary: PublishedSummary;
+  readonly samples: readonly RedactedSample[];
 }
 
 function parseJson(raw: string | null | undefined): unknown {
@@ -463,7 +470,113 @@ async function validateRawArtifacts(
     ) {
       throw new Error(`Refusing to publish: artifact config mismatch for ${chunk.artifact}`);
     }
+    const selection = suiteSelection(spec, chunk.suite);
+    const expectedIds = selection.expectedIds.slice(chunk.start - selection.start, chunk.end - selection.start);
+    if (stableJson(rows.map((row) => row.sample_id)) !== stableJson(expectedIds)) {
+      throw new Error(`Refusing to publish: stable-id selection mismatch for ${chunk.artifact}`);
+    }
+    if (rows.some((row) => row.score_value === 'skipped' || row.total_tokens <= 0)) {
+      throw new Error(`Refusing to publish: skipped or zero-use sample in ${chunk.artifact}`);
+    }
+    const failureText = rows.flatMap((row) => [row.explanation, row.metadata]).filter((value): value is string => value !== null);
+    if (failureText.some((value) => /(?:HTTP\s*)?402|payment required|insufficient credits/iu.test(value))) {
+      throw new Error(`Refusing to publish: payment failure in ${chunk.artifact}`);
+    }
   }
+}
+
+function cohortCompleteness(
+  expectedIds: readonly string[],
+  observed: readonly RedactedSample[],
+): { missing: string[]; duplicates: string[]; unexpected: string[] } {
+  const counts = new Map<string, number>();
+  for (const sample of observed) {
+    counts.set(sample.sampleId, (counts.get(sample.sampleId) ?? 0) + 1);
+  }
+  const expected = new Set(expectedIds);
+  return {
+    missing: expectedIds.filter((id) => !counts.has(id)),
+    duplicates: [...counts.entries()].filter(([, count]) => count !== 1).map(([id]) => id).toSorted(),
+    unexpected: [...counts.keys()].filter((id) => !expected.has(id)).toSorted(),
+  };
+}
+
+export function mergeCohortBundles(original: CohortBundle, incremental: CohortBundle): {
+  readonly summary: PublishedSummary;
+  readonly samples: readonly RedactedSample[];
+  readonly validation: Readonly<Record<string, unknown>>;
+} {
+  const suites = new Set([...Object.keys(original.summary.suites), ...Object.keys(incremental.summary.suites)] as SuiteName[]);
+  const mergedSuites: Partial<Record<SuiteName, SuiteSummary>> = {};
+  const samples = [...original.samples, ...incremental.samples].toSorted((left, right) =>
+    left.suite === right.suite
+      ? left.sampleId === right.sampleId
+        ? left.epoch - right.epoch
+        : left.sampleId.localeCompare(right.sampleId)
+      : left.suite.localeCompare(right.suite),
+  );
+  const validation: Record<string, unknown> = {};
+  for (const suite of suites) {
+    const left = original.summary.suites[suite];
+    const right = incremental.summary.suites[suite];
+    if (left === undefined || right === undefined) {
+      throw new Error(`Both cohorts must contain ${suite}`);
+    }
+    const originalSamples = original.samples.filter((sample) => sample.suite === suite);
+    const incrementalSamples = incremental.samples.filter((sample) => sample.suite === suite);
+    const overlap = originalSamples.map((sample) => sample.sampleId).filter((id) =>
+      incrementalSamples.some((sample) => sample.sampleId === id),
+    );
+    const expectedIds = [...originalSamples, ...incrementalSamples].map((sample) => sample.sampleId);
+    const checks = cohortCompleteness(expectedIds, samples.filter((sample) => sample.suite === suite));
+    if (overlap.length > 0 || checks.missing.length > 0 || checks.duplicates.length > 0 || checks.unexpected.length > 0) {
+      throw new Error(`Cohort stable-ID validation failed for ${suite}`);
+    }
+    const totalQuestions = left.completedTasks + right.completedTasks;
+    const weighted = (a: number, b: number): number =>
+      (a * left.completedTasks + b * right.completedTasks) / totalQuestions;
+    const metricNames = new Set([...Object.keys(left.metrics), ...Object.keys(right.metrics)]);
+    mergedSuites[suite] = {
+      ...left,
+      score: weighted(left.score, right.score),
+      accuracy: weighted(left.accuracy, right.accuracy),
+      selectedTasks: left.selectedTasks + right.selectedTasks,
+      completedTasks: totalQuestions,
+      correctAnswers: left.correctAnswers + right.correctAnswers,
+      skippedQuestions: left.skippedQuestions + right.skippedQuestions,
+      inputTokens: left.inputTokens + right.inputTokens,
+      outputTokens: left.outputTokens + right.outputTokens,
+      totalTokens: left.totalTokens + right.totalTokens,
+      reasoningTokens: left.reasoningTokens + right.reasoningTokens,
+      generationTimeMs: left.generationTimeMs + right.generationTimeMs,
+      totalCost: left.totalCost + right.totalCost,
+      metrics: Object.fromEntries(
+        [...metricNames].map((name) => [
+          name,
+          name === 'samples_judged'
+            ? (left.metrics[name] ?? 0) + (right.metrics[name] ?? 0)
+            : weighted(left.metrics[name] ?? 0, right.metrics[name] ?? 0),
+        ]),
+      ),
+      chunks: left.chunks + right.chunks,
+    };
+    validation[suite] = {
+      original: originalSamples.length,
+      incremental: incrementalSamples.length,
+      cumulative: expectedIds.length,
+      overlap: 0,
+      ...checks,
+    };
+  }
+  const summary: PublishedSummary = {
+    ...incremental.summary,
+    runId: `${incremental.summary.runId}-cumulative`,
+    title: `${incremental.summary.title} cumulative`,
+    totalCost: Object.values(mergedSuites).reduce((total, suite) => total + suite.totalCost, 0),
+    totalTokens: Object.values(mergedSuites).reduce((total, suite) => total + suite.totalTokens, 0),
+    suites: mergedSuites,
+  };
+  return { summary, samples, validation };
 }
 
 function publishedManifest(manifest: RunManifest): unknown {

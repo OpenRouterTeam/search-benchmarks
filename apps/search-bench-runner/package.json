@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "bench": "bun run bench.ts",
+    "merge-cohorts": "bun run cohort-merge.ts",
     "publish": "bun run publish-run.ts",
     "test": "bun test",
     "typecheck": "tsgo --noEmit"

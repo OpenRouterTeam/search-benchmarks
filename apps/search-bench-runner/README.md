@@ -77,6 +77,34 @@ before committing or sharing it.
 The upstream repository also exposes a lower-level `--benchmark` CLI; it does
 not provide TOML planning, cost approval, chunk resumption, or this repository's
 redacted publication boundary.
+
+## Stable-ID cohort extension
+
+For an extension that must exclude a retained cohort, use an explicit selection
+block instead of positional `start`/`limit` alone:
+
+```toml
+suites = ["browsecomp", "dsqa"]
+
+[selection.browsecomp]
+start = 100
+expected_ids = ["browsecomp-100", "browsecomp-101"]
+
+[selection.dsqa]
+start = 100
+expected_ids = ["dsqa-100", "dsqa-101"]
+```
+
+The runner validates every ID against the pinned dataset's absolute identity,
+prints the selection range and manifest hash in dry-run output, and verifies
+the exact stable IDs again when resuming and publishing chunks. A selection
+contract cannot be combined with `limit`, and every selected suite needs its
+own block. Published chunks are rejected for missing, duplicate, unexpected,
+skipped, zero-use, or payment-failure rows.
+
+`mergeCohortBundles` performs the cumulative merge without model calls. It
+requires disjoint stable IDs and denominator-weights per-sample metrics while
+adding costs, tokens, correct counts, and time.
 DeepSearchQA's headline metric is macro `f1_score`; its binary accuracy is the
 strict Fully Correct rate. WideSearch's headline metric is `f1_by_item`, not
 binary accuracy.
